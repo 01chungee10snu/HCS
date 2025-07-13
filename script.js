@@ -49,9 +49,66 @@ class PortfolioApp {
         const timelineContainer = document.getElementById('experience-timeline');
         const { experience } = this.data;
 
+        // Add filter controls
+        this.addFilterControls();
+
         experience.forEach((exp, index) => {
             const timelineItem = this.createTimelineItem(exp, index);
             timelineContainer.appendChild(timelineItem);
+        });
+    }
+
+    addFilterControls() {
+        const experienceSection = document.getElementById('experience');
+        const filterContainer = document.createElement('div');
+        filterContainer.className = 'filter-controls mb-4 text-center';
+        filterContainer.innerHTML = `
+            <div class="btn-group mb-3" role="group">
+                <button type="button" class="btn btn-outline-primary active" data-filter="all">전체</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="리더십개발">리더십개발</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="인재관리">인재관리</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="교육기획">교육기획</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="시스템혁신">시스템혁신</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="조직개발">조직개발</button>
+                <button type="button" class="btn btn-outline-primary" data-filter="채용관리">채용관리</button>
+            </div>
+        `;
+        
+        const timelineContainer = document.getElementById('experience-timeline');
+        timelineContainer.parentNode.insertBefore(filterContainer, timelineContainer);
+        
+        // Add filter event listeners
+        filterContainer.addEventListener('click', (e) => {
+            if (e.target.matches('[data-filter]')) {
+                this.filterAchievements(e.target.dataset.filter);
+                
+                // Update active button
+                filterContainer.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+            }
+        });
+    }
+
+    filterAchievements(category) {
+        const achievementCards = document.querySelectorAll('.achievement-card');
+        
+        achievementCards.forEach(card => {
+            if (category === 'all' || card.classList.contains(`category-${category}`)) {
+                card.style.display = 'block';
+                card.parentElement.style.opacity = '1';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Hide timeline items that have no visible achievements
+        document.querySelectorAll('.timeline-item').forEach(item => {
+            const visibleAchievements = item.querySelectorAll('.achievement-card[style*="block"], .achievement-card:not([style*="none"])');
+            if (category === 'all' || visibleAchievements.length > 0) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
         });
     }
 
@@ -59,17 +116,29 @@ class PortfolioApp {
         const item = document.createElement('div');
         item.className = 'timeline-item animate-on-scroll';
         
-        const achievementsHtml = exp.achievements.map(achievement => `
-            <div class="achievement-card">
-                <h6 class="fw-bold text-primary mb-2">${achievement.name}</h6>
-                <p class="text-muted small mb-2">${achievement.duration}</p>
-                <p class="mb-0">${achievement.details}</p>
-            </div>
-        `).join('');
+        // Get dominant category for timeline icon
+        const dominantCategory = this.getDominantCategory(exp.achievements);
+        
+        const achievementsHtml = exp.achievements.map(achievement => {
+            const categoryClass = achievement.category ? `category-${achievement.category}` : '';
+            const impactClass = achievement.impactLevel ? `impact-${achievement.impactLevel}` : '';
+            const innovationClass = achievement.innovationType ? `innovation-${achievement.innovationType}` : '';
+            const collaborationClass = achievement.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
+            
+            return `
+                <div class="achievement-card ${categoryClass} ${collaborationClass}">
+                    <div class="impact-indicator ${impactClass}"></div>
+                    <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement.innovationType)}</div>
+                    <h6 class="fw-bold text-primary mb-2">${achievement.name}</h6>
+                    <p class="text-muted small mb-2">${achievement.duration}</p>
+                    <p class="mb-0">${achievement.details}</p>
+                </div>
+            `;
+        }).join('');
 
         item.innerHTML = `
-            <div class="timeline-icon">
-                <i class="bi bi-building"></i>
+            <div class="timeline-icon category-${dominantCategory}">
+                <i class="bi ${this.getCategoryIcon(dominantCategory)}"></i>
             </div>
             <div class="timeline-content">
                 <span class="timeline-period">${exp.period}</span>
@@ -85,6 +154,39 @@ class PortfolioApp {
         `;
         
         return item;
+    }
+
+    getDominantCategory(achievements) {
+        const categoryCount = {};
+        achievements.forEach(achievement => {
+            const category = achievement.category || '기타';
+            categoryCount[category] = (categoryCount[category] || 0) + 1;
+        });
+        
+        return Object.keys(categoryCount).reduce((a, b) => 
+            categoryCount[a] > categoryCount[b] ? a : b
+        );
+    }
+
+    getCategoryIcon(category) {
+        const iconMap = {
+            '리더십개발': 'bi-person-badge',
+            '인재관리': 'bi-people',
+            '교육기획': 'bi-mortarboard',
+            '시스템혁신': 'bi-gear',
+            '조직개발': 'bi-diagram-3',
+            '채용관리': 'bi-person-plus'
+        };
+        return iconMap[category] || 'bi-building';
+    }
+
+    getInnovationIcon(type) {
+        const iconMap = {
+            '혁신': '🚀',
+            '개선': '⚡',
+            '최적화': '🔧'
+        };
+        return iconMap[type] || '';
     }
 
     populateEducationSection() {

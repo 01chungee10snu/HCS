@@ -189,6 +189,16 @@ body {
   transform: translateX(-50%);
 }
 
+/* Category Color Variables */
+:root {
+  --category-leadership: #1e3a8a;
+  --category-talent: #7c2d12;
+  --category-education: #ea580c;
+  --category-system: #15803d;
+  --category-organization: #7c3aed;
+  --category-recruitment: #be185d;
+}
+
 .timeline-item {
   position: relative;
   margin-bottom: 3rem;
@@ -243,6 +253,31 @@ body {
   box-shadow: 0 4px 12px var(--shadow-color);
 }
 
+/* Category-based Timeline Icons */
+.timeline-icon.category-리더십개발 {
+  background: var(--category-leadership);
+}
+
+.timeline-icon.category-인재관리 {
+  background: var(--category-talent);
+}
+
+.timeline-icon.category-교육기획 {
+  background: var(--category-education);
+}
+
+.timeline-icon.category-시스템혁신 {
+  background: var(--category-system);
+}
+
+.timeline-icon.category-조직개발 {
+  background: var(--category-organization);
+}
+
+.timeline-icon.category-채용관리 {
+  background: var(--category-recruitment);
+}
+
 .timeline-period {
   background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
   color: white;
@@ -262,11 +297,105 @@ body {
   margin-top: 1rem;
   border-left: 4px solid var(--accent-color);
   transition: var(--transition);
+  position: relative;
 }
 
 .achievement-card:hover {
   background: white;
   box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+/* Multi-dimensional Achievement Cards */
+.achievement-card.category-리더십개발 {
+  border-left-color: var(--category-leadership);
+}
+
+.achievement-card.category-인재관리 {
+  border-left-color: var(--category-talent);
+}
+
+.achievement-card.category-교육기획 {
+  border-left-color: var(--category-education);
+}
+
+.achievement-card.category-시스템혁신 {
+  border-left-color: var(--category-system);
+}
+
+.achievement-card.category-조직개발 {
+  border-left-color: var(--category-organization);
+}
+
+.achievement-card.category-채용관리 {
+  border-left-color: var(--category-recruitment);
+}
+
+/* Impact Level Indicators */
+.impact-indicator {
+  position: absolute;
+  top: -8px;
+  right: 15px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  border: 3px solid white;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.impact-indicator.impact-그룹급 {
+  width: 20px;
+  height: 20px;
+  background: #dc2626;
+}
+
+.impact-indicator.impact-전사급 {
+  width: 16px;
+  height: 16px;
+  background: var(--primary-color);
+}
+
+.impact-indicator.impact-부서급 {
+  width: 12px;
+  height: 12px;
+  background: var(--secondary-color);
+}
+
+/* Innovation Type Badges */
+.innovation-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: white;
+}
+
+.innovation-badge.innovation-혁신 {
+  background: #dc2626;
+}
+
+.innovation-badge.innovation-개선 {
+  background: #059669;
+}
+
+.innovation-badge.innovation-최적화 {
+  background: #7c3aed;
+}
+
+/* Collaboration Scope Border */
+.achievement-card.collaboration-그룹 {
+  border-width: 0 0 0 6px;
+}
+
+.achievement-card.collaboration-전사 {
+  border-width: 0 0 0 4px;
+}
+
+.achievement-card.collaboration-부서 {
+  border-width: 0 0 0 2px;
 }
 
 /* Education Cards */
@@ -486,6 +615,31 @@ footer {
   .achievement-card {
     padding: 1rem;
   }
+}
+
+/* Filter Controls */
+.filter-controls .btn-group {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-controls .btn {
+  margin: 0.25rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: var(--transition);
+}
+
+.filter-controls .btn.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.filter-controls .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 /* Utility classes */
