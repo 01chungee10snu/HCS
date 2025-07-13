@@ -46,11 +46,13 @@ class PortfolioApp {
     async loadEssentialData() {
         // Load only critical above-the-fold data first
         try {
-            const response = await fetch('Data.json', {
-                cache: 'force-cache',
+            const response = await fetch('./Data.json', {
+                method: 'GET',
                 headers: {
                     'Accept': 'application/json',
-                }
+                    'Content-Type': 'application/json'
+                },
+                cache: 'default'
             });
             
             if (!response.ok) {
@@ -81,8 +83,13 @@ class PortfolioApp {
         if (typeof requestIdleCallback !== 'undefined') {
             requestIdleCallback(async () => {
                 try {
-                    const response = await fetch('Data.json', {
-                        cache: 'force-cache'
+                    const response = await fetch('./Data.json', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        cache: 'default'
                     });
                     
                     const fullData = await response.json();
@@ -880,30 +887,82 @@ class PortfolioApp {
     }
 
     showErrorMessage() {
+        console.error('Portfolio initialization failed');
         const heroSection = document.getElementById('home');
-        heroSection.innerHTML = `
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 text-center">
-                        <div class="alert alert-danger" role="alert">
-                            <h4 class="alert-heading">데이터 로딩 오류</h4>
-                            <p>죄송합니다. 포트폴리오 데이터를 불러오는 중 문제가 발생했습니다.</p>
-                            <hr>
-                            <p class="mb-0">페이지를 새로고침하거나 잠시 후 다시 시도해주세요.</p>
+        if (heroSection) {
+            heroSection.innerHTML = `
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8 text-center">
+                            <div class="alert alert-warning" role="alert">
+                                <h4 class="alert-heading">로딩 중...</h4>
+                                <p>포트폴리오 데이터를 불러오고 있습니다. 잠시만 기다려주세요.</p>
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary mt-3" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise"></i> 새로고침
+                            </button>
                         </div>
-                        <button class="btn btn-primary" onclick="location.reload()">
-                            <i class="bi bi-arrow-clockwise"></i> 새로고침
-                        </button>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
+        
+        // Fallback data loading attempt
+        setTimeout(() => {
+            this.loadFallbackData();
+        }, 3000);
+    }
+
+    loadFallbackData() {
+        // Provide basic fallback data if fetch fails
+        this.data = {
+            basics: {
+                name: "한충석",
+                currentTitle: "현대제철 성장디자인팀 책임매니저",
+                currentCompany: "현대제철",
+                email: "brienz311@gmail.com",
+                location: "대한민국 경기도 안산시",
+                summary: "현대제철에서 10년 이상 인적자원개발(HRD) 전문가로 재직하며 리더십 개발, 핵심인재 양성, 교육 프로세스 혁신 등의 분야에서 성과를 창출했습니다.",
+                philosophy: "사람은 바뀔 수 있다고 믿으며, 누구나 적절한 지원과 학습 기회가 주어지면 성장할 수 있다는 것을 업무 철학으로 삼고 있습니다."
+            },
+            experience: [],
+            education: [],
+            skills: [],
+            certifications: [],
+            projects: [],
+            publications: [],
+            externalLinks: []
+        };
+
+        this.populateHeroSection();
+        console.log('Fallback data loaded');
     }
 }
 
 // DOM이 로드되면 애플리케이션 시작
 document.addEventListener('DOMContentLoaded', () => {
-    new PortfolioApp();
+    console.log('DOM loaded, initializing portfolio...');
+    try {
+        new PortfolioApp();
+    } catch (error) {
+        console.error('Failed to initialize PortfolioApp:', error);
+        // Show basic content if JavaScript fails
+        document.body.innerHTML = `
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <h1>한충석</h1>
+                        <h2>현대제철 HRD 전문가</h2>
+                        <p>현재 페이지를 로딩하고 있습니다. 잠시만 기다려주세요.</p>
+                        <button class="btn btn-primary" onclick="location.reload()">새로고침</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 });
 
 // 추가 유틸리티 함수들
