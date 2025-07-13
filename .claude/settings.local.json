@@ -9,7 +9,9 @@
       "Bash(git commit:*)",
       "Bash(git config:*)",
       "Bash(sed:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
