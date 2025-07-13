@@ -49,6 +49,9 @@ class PortfolioApp {
         const timelineContainer = document.getElementById('experience-timeline');
         const { experience } = this.data;
 
+        // Add career summary section
+        this.addCareerSummary();
+
         // Add filter controls
         this.addFilterControls();
 
@@ -56,6 +59,56 @@ class PortfolioApp {
             const timelineItem = this.createTimelineItem(exp, index);
             timelineContainer.appendChild(timelineItem);
         });
+    }
+
+    addCareerSummary() {
+        const experienceSection = document.getElementById('experience');
+        const { careerSummary } = this.data;
+        
+        if (!careerSummary) return;
+
+        const summaryContainer = document.createElement('div');
+        summaryContainer.className = 'career-summary';
+        summaryContainer.innerHTML = `
+            <div class="container">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold mb-2">경력 여정 한눈에 보기</h3>
+                    <p class="text-muted">연도별 주요 테마와 핵심 성과를 요약했습니다</p>
+                </div>
+                <div class="summary-grid">
+                    ${careerSummary.map(summary => this.createSummaryCard(summary)).join('')}
+                </div>
+            </div>
+        `;
+        
+        const timelineContainer = document.getElementById('experience-timeline');
+        timelineContainer.parentNode.insertBefore(summaryContainer, timelineContainer);
+    }
+
+    createSummaryCard(summary) {
+        const categoriesHtml = summary.categories.map(category => 
+            `<span class="category-tag category-${category}">${category}</span>`
+        ).join('');
+        
+        const achievementsHtml = summary.keyAchievements.map(achievement => 
+            `<div class="achievement-item">${achievement}</div>`
+        ).join('');
+
+        return `
+            <div class="summary-card impact-${summary.impactLevel} animate-on-scroll">
+                <div class="summary-icon">${summary.icon}</div>
+                <span class="summary-period">${summary.period}</span>
+                <h4 class="summary-theme">${summary.theme}</h4>
+                <p class="summary-description">${summary.description}</p>
+                <div class="summary-achievements">
+                    <h6>주요 성과</h6>
+                    ${achievementsHtml}
+                </div>
+                <div class="summary-categories">
+                    ${categoriesHtml}
+                </div>
+            </div>
+        `;
     }
 
     addFilterControls() {
