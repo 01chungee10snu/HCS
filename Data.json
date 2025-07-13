@@ -12,11 +12,21 @@
   "education": [
     {
       "institution": "서울대학교",
-      "degree": "석사 과정",
-      "major": "농산업교육과 (HRD 전공)",
-      "period": "2021.03 ~ 재학중",
+      "degree": "박사 과정",
+      "major": "산업인력개발학과",
+      "period": "2025.09 ~ 재학중",
       "location": "서울시 관악구",
-      "GPA": "4.15/4.3"
+      "GPA": null,
+      "status": "입학 예정"
+    },
+    {
+      "institution": "서울대학교",
+      "degree": "석사",
+      "major": "산업인력개발학과",
+      "period": "2021.03 ~ 2023.08",
+      "location": "서울시 관악구",
+      "GPA": "4.15/4.3",
+      "status": "졸업"
     },
     {
       "institution": "동국대학교",
@@ -271,6 +281,21 @@
       "description": "대부분의 기능을 활용 가능하며 탁월한 작업 속도를 보유"
     },
     {
+      "name": "Python 데이터 분석",
+      "level": "상",
+      "description": "Pandas, NumPy, Matplotlib를 활용한 데이터 전처리, 분석 및 시각화. 자연어 처리(KoNLPy), 머신러닝 모델링 경험"
+    },
+    {
+      "name": "R (통계 분석)",
+      "level": "중상",
+      "description": "기초 통계분석(t-test, ANOVA) 및 회귀분석과 조건부 과정분석(매개/조절/조절된 매개 등) 수행 가능"
+    },
+    {
+      "name": "데이터 시각화",
+      "level": "상",
+      "description": "Python(Matplotlib, Seaborn, Plotly), R(ggplot2)을 활용한 인사이트 도출용 시각화 제작"
+    },
+    {
       "name": "Adobe Photoshop",
       "level": "상",
       "description": "교육 자료용 사진·이미지를 직접 제작하고 편집할 수 있는 수준"
@@ -281,14 +306,9 @@
       "description": "교육 영상의 기획부터 촬영, 편집까지 자체적으로 수행 가능한 수준"
     },
     {
-      "name": "R (통계 분석)",
+      "name": "웹 개발 (HTML/CSS/JavaScript)",
       "level": "중",
-      "description": "기초 통계분석(t-test, ANOVA) 및 회귀분석과 조건부 과정분석(매개/조절/조절된 매개 등) 수행 가능"
-    },
-    {
-      "name": "Python (KoNLPy 등 활용)",
-      "level": "중",
-      "description": "KoNLPy 등을 활용한 한글 텍스트 데이터 자연어 처리 및 키워드 도출 경험 보유"
+      "description": "포트폴리오 웹사이트 개발, 인터랙티브 데이터 시각화 구현 가능"
     }
   ],
   "certifications": [
@@ -335,7 +355,59 @@
       "grade_score": "1종 보통"
     }
   ],
-  "projects": [],
+  "projects": [
+    {
+      "name": "HCS 포트폴리오 웹사이트",
+      "description": "개인 포트폴리오를 위한 반응형 웹사이트 개발. 성능 최적화와 모바일 친화적 UI/UX를 구현하여 사용자 경험을 극대화",
+      "technologies": ["JavaScript", "HTML5", "CSS3", "Bootstrap 5", "Intersection Observer API"],
+      "github": "https://github.com/01Chungee10snu/HCS",
+      "demo": null,
+      "startDate": "2024.12",
+      "endDate": "진행중",
+      "status": "완료",
+      "highlights": [
+        "Critical CSS 인라인 처리로 로딩 속도 50% 개선",
+        "Intersection Observer를 활용한 스크롤 성능 최적화",
+        "GPU 가속 애니메이션으로 부드러운 사용자 인터랙션 구현",
+        "모바일 및 저사양 디바이스 최적화"
+      ],
+      "category": "웹개발"
+    },
+    {
+      "name": "데이터 과학을 위한 실용 통계학",
+      "description": "Python을 활용한 데이터 과학 및 통계 분석 프로젝트. 실무에서 활용 가능한 통계 기법과 데이터 분석 방법론 학습 및 적용",
+      "technologies": ["Python", "Pandas", "NumPy", "Matplotlib", "Seaborn", "Scikit-learn"],
+      "github": "https://github.com/01Chungee10snu/PracticalStatisticsForDataScientists",
+      "demo": null,
+      "startDate": "2024.01",
+      "endDate": "2024.06",
+      "status": "완료",
+      "highlights": [
+        "탐색적 데이터 분석(EDA) 및 데이터 시각화",
+        "회귀분석, 분류, 클러스터링 등 머신러닝 모델 구현",
+        "통계적 가설 검정 및 A/B 테스트 방법론 적용",
+        "실제 비즈니스 데이터를 활용한 인사이트 도출"
+      ],
+      "category": "데이터분석"
+    },
+    {
+      "name": "ADK Python 프로젝트",
+      "description": "Python을 활용한 데이터 처리 및 분석 도구 개발. HRD 업무에 필요한 데이터 분석 자동화 솔루션",
+      "technologies": ["Python", "Data Processing", "Automation"],
+      "github": "https://github.com/01Chungee10snu/adk-python",
+      "demo": null,
+      "startDate": "2023.09",
+      "endDate": "2024.02",
+      "status": "완료",
+      "highlights": [
+        "교육 데이터 자동 수집 및 전처리 파이프라인 구축",
+        "Python 스크립트를 활용한 반복 업무 자동화",
+        "데이터 품질 관리 및 검증 로직 구현",
+        "HRD 지표 산출 및 리포팅 자동화"
+      ],
+      "category": "자동화"
+    }
+  ],
   "awards": [],
   "publications": [
     {

@@ -13,6 +13,7 @@ class PortfolioApp {
             this.populateEducationSection();
             this.populateSkillsSection();
             this.populateCertificationsSection();
+            this.populateProjectsSection();
             this.populatePublicationsSection();
             this.populateContactSection();
             this.initializeLazyLoading();
@@ -544,10 +545,24 @@ class PortfolioApp {
         const certificationsGrid = document.getElementById('certifications-grid');
         const { certifications } = this.data;
 
-        certifications.forEach(cert => {
-            const certCard = this.createCertificationCard(cert);
-            certificationsGrid.appendChild(certCard);
-        });
+        if (certifications && certifications.length > 0) {
+            certifications.forEach(cert => {
+                const certCard = this.createCertificationCard(cert);
+                certificationsGrid.appendChild(certCard);
+            });
+        }
+    }
+
+    populateProjectsSection() {
+        const projectsGrid = document.getElementById('projects-grid');
+        const { projects } = this.data;
+
+        if (projects && projects.length > 0) {
+            projects.forEach(project => {
+                const projectCard = this.createProjectCard(project);
+                projectsGrid.appendChild(projectCard);
+            });
+        }
     }
 
     createCertificationCard(cert) {
@@ -567,6 +582,74 @@ class PortfolioApp {
         `;
         
         return col;
+    }
+
+    createProjectCard(project) {
+        const col = document.createElement('div');
+        col.className = 'col-lg-6 mb-4';
+        
+        const techStack = project.technologies.map(tech => 
+            `<span class="tech-tag">${tech}</span>`
+        ).join('');
+        
+        const highlights = project.highlights.map(highlight => 
+            `<li class="project-highlight">${highlight}</li>`
+        ).join('');
+        
+        const githubLink = project.github ? 
+            `<a href="${project.github}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm me-2">
+                <i class="bi bi-github"></i> GitHub
+            </a>` : '';
+            
+        const demoLink = project.demo ? 
+            `<a href="${project.demo}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                <i class="bi bi-play-circle"></i> Demo
+            </a>` : '';
+        
+        col.innerHTML = `
+            <div class="project-card animate-on-scroll">
+                <div class="project-header">
+                    <div class="project-category ${project.category}">${project.category}</div>
+                    <div class="project-status ${project.status}">${project.status}</div>
+                </div>
+                <div class="project-icon">
+                    <i class="bi ${this.getProjectIcon(project.category)}"></i>
+                </div>
+                <h5 class="fw-bold mb-2">${project.name}</h5>
+                <p class="text-muted mb-3">${project.description}</p>
+                <div class="tech-stack mb-3">
+                    ${techStack}
+                </div>
+                <div class="project-highlights mb-3">
+                    <h6 class="fw-semibold mb-2">주요 성과</h6>
+                    <ul class="highlights-list">
+                        ${highlights}
+                    </ul>
+                </div>
+                <div class="project-period mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> ${project.startDate} ~ ${project.endDate}
+                    </small>
+                </div>
+                <div class="project-links">
+                    ${githubLink}
+                    ${demoLink}
+                </div>
+            </div>
+        `;
+        
+        return col;
+    }
+
+    getProjectIcon(category) {
+        const iconMap = {
+            '웹개발': 'bi-code-slash',
+            '데이터분석': 'bi-graph-up',
+            '자동화': 'bi-robot',
+            '머신러닝': 'bi-cpu',
+            '연구': 'bi-journal-text'
+        };
+        return iconMap[category] || 'bi-folder';
     }
 
     populatePublicationsSection() {

@@ -978,6 +978,183 @@ footer {
   box-shadow: 0 4px 8px var(--shadow-color);
 }
 
+/* Legend Styles */
+.legend-container {
+  border: 1px solid var(--border-color);
+}
+
+.legend-section h7 {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.legend-item i {
+  font-size: 0.875rem;
+}
+
+.impact-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.impact-dot.impact-group {
+  background: #dc2626;
+}
+
+.impact-dot.impact-company {
+  background: var(--primary-color);
+}
+
+.impact-dot.impact-dept {
+  background: var(--secondary-color);
+}
+
+/* Project Cards */
+.project-card {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: 0 4px 20px var(--shadow-color);
+  transition: var(--transition);
+  height: 100%;
+  position: relative;
+  border-top: 4px solid var(--primary-color);
+}
+
+.project-card:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 8px 32px var(--shadow-color);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.project-category {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.project-category.웹개발 {
+  background: #059669;
+}
+
+.project-category.데이터분석 {
+  background: #dc2626;
+}
+
+.project-category.자동화 {
+  background: #7c3aed;
+}
+
+.project-status {
+  background: var(--light-color);
+  color: var(--text-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+}
+
+.project-status.완료 {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.project-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tech-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-tag {
+  background: var(--light-color);
+  color: var(--text-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+}
+
+.project-highlights h6 {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+}
+
+.highlights-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.project-highlight {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.project-highlight::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.project-period {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+}
+
+.project-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 /* Utility classes */
 .bg-gradient-primary {
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
