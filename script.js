@@ -7,7 +7,10 @@ class PortfolioApp {
 
     async init() {
         try {
+            console.log('Starting data load...');
             await this.loadData();
+            console.log('Data loaded, populating sections...');
+            
             this.populateHeroSection();
             this.populateExperienceSection();
             this.populateEducationSection();
@@ -16,9 +19,13 @@ class PortfolioApp {
             this.populateProjectsSection();
             this.populatePublicationsSection();
             this.populateContactSection();
+            
+            console.log('All sections populated, initializing features...');
             this.initializeLazyLoading();
             this.initializeAnimations();
             this.initializeSmoothScrolling();
+            
+            console.log('Portfolio initialization complete!');
         } catch (error) {
             console.error('Portfolio 초기화 중 오류:', error);
             this.showErrorMessage();
@@ -27,12 +34,20 @@ class PortfolioApp {
 
     async loadData() {
         try {
-            // Progressive data loading with chunking
-            const essentialData = await this.loadEssentialData();
-            this.data = essentialData;
+            // Simplified data loading - load all data at once
+            const response = await fetch('./Data.json', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             
-            // Load remaining data in background
-            this.loadSecondaryData();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            this.data = await response.json();
+            console.log('Data loaded successfully:', this.data);
             
             // Preload critical data sections
             this.preloadCriticalImages();
@@ -264,12 +279,24 @@ class PortfolioApp {
     }
 
     populateHeroSection() {
-        const { basics } = this.data;
-        
-        document.getElementById('hero-name').textContent = basics.name;
-        document.getElementById('hero-title').textContent = `${basics.currentTitle}, ${basics.currentCompany}`;
-        document.getElementById('hero-summary').textContent = basics.summary;
-        document.getElementById('hero-philosophy').textContent = basics.philosophy;
+        try {
+            console.log('Populating hero section...');
+            const { basics } = this.data;
+            
+            const nameEl = document.getElementById('hero-name');
+            const titleEl = document.getElementById('hero-title');
+            const summaryEl = document.getElementById('hero-summary');
+            const philosophyEl = document.getElementById('hero-philosophy');
+            
+            if (nameEl) nameEl.textContent = basics?.name || '한충석';
+            if (titleEl) titleEl.textContent = `${basics?.currentTitle || '책임매니저'}, ${basics?.currentCompany || '현대제철'}`;
+            if (summaryEl) summaryEl.textContent = basics?.summary || '현대제철 HRD 전문가';
+            if (philosophyEl) philosophyEl.textContent = basics?.philosophy || '사람은 바뀔 수 있다고 믿습니다.';
+            
+            console.log('Hero section populated successfully');
+        } catch (error) {
+            console.error('Hero section population failed:', error);
+        }
     }
 
     populateExperienceSection() {
@@ -791,11 +818,11 @@ class PortfolioApp {
         const sections = document.querySelectorAll('section[id]');
 
         // Batch DOM queries
-        requestIdleCallback(() => {
+        setTimeout(() => {
             animationElements.forEach(el => animationObserver.observe(el));
             lazyElements.forEach(el => lazyLoadObserver.observe(el));
             sections.forEach(section => navObserver.observe(section));
-        });
+        }, 100);
 
         // Store observers for cleanup
         this.observers = {
@@ -1038,12 +1065,10 @@ class ScrollPerformanceManager {
 
     onScrollEnd() {
         // Optimize performance when scrolling stops
-        if (typeof requestIdleCallback !== 'undefined') {
-            requestIdleCallback(() => {
-                // Perform non-critical tasks during idle time
-                this.performIdleTasks();
-            });
-        }
+        setTimeout(() => {
+            // Perform non-critical tasks during idle time
+            this.performIdleTasks();
+        }, 200);
     }
 
     performIdleTasks() {
