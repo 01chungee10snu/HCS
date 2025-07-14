@@ -114,17 +114,8 @@ class PortfolioApp {
                 })
                 .then(data => {
                     clearTimeout(timeoutId);
-                    console.log('✅ Data parsed successfully');
-                    console.log('📊 Experience data length:', data?.experience?.length);
-                    if (data?.experience?.length > 0) {
-                        console.log('🎯 First experience item achievements:', data.experience[0]?.achievements?.length);
-                        console.log('📄 Sample achievement:', data.experience[0]?.achievements?.[0]?.name);
-                        
-                        // Log all experience companies and achievement counts
-                        data.experience.forEach((exp, index) => {
-                            console.log(`📍 Company ${index + 1}: ${exp.company} (${exp.achievements?.length || 0} achievements)`);
-                        });
-                    }
+                    console.log('Data loaded successfully');
+                    console.log(`Experience items: ${data?.experience?.length || 0}`);
                     this.data = data;
                     resolve(data);
                 })
@@ -217,6 +208,9 @@ class PortfolioApp {
                 timelineContainer.style.display = 'none';
                 timelineContainer.offsetHeight; // Trigger reflow
                 timelineContainer.style.display = '';
+                
+                // Initialize scroll progress and minimap
+                this.initializeScrollTracking();
             } else {
                 console.log('No experience data found, showing fallback message');
                 timelineContainer.innerHTML = '<div class="text-center p-4"><p class="text-muted">경력 정보를 불러오는 중입니다...</p></div>';
@@ -390,33 +384,11 @@ class PortfolioApp {
             // Get dominant category for timeline icon
             const dominantCategory = this.getDominantCategory(achievements);
             
-            const achievementsHtml = achievements.map((achievement, achIndex) => {
-                try {
-                    const categoryClass = achievement?.category ? `category-${achievement.category}` : '';
-                    const impactClass = achievement?.impactLevel ? `impact-${achievement.impactLevel}` : '';
-                    const innovationClass = achievement?.innovationType ? `innovation-${achievement.innovationType}` : '';
-                    const collaborationClass = achievement?.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
-                    
-                    return `
-                        <div class="achievement-card visible-content ${categoryClass} ${collaborationClass}" style="opacity: 1; transform: translate3d(0, 0, 0);">
-                            <div class="impact-indicator ${impactClass}"></div>
-                            <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement?.innovationType)}</div>
-                            <h6 class="fw-bold text-primary mb-2">${achievement?.name || '제목 없음'}</h6>
-                            <p class="text-muted small mb-2">${achievement?.duration || ''}</p>
-                            <p class="mb-0">${achievement?.details || ''}</p>
-                        </div>
-                    `;
-                } catch (achError) {
-                    console.error(`Error processing achievement ${achIndex}:`, achError);
-                    return '<div class="achievement-card visible-content" style="opacity: 1; transform: translate3d(0, 0, 0);"><p class="text-muted">성과 정보 로딩 중...</p></div>';
-                }
-            }).join('');
+            // Group achievements by category
+            const achievementsByCategory = this.groupAchievementsByCategory(achievements);
+            const achievementsHtml = this.renderGroupedAchievements(achievementsByCategory);
             
-            console.log(`🏢 ${exp.company}: Generated ${achievements.length} achievement cards`);
-            console.log(`📝 Achievement HTML length: ${achievementsHtml.length} characters`);
-            if (achievementsHtml.length === 0) {
-                console.error(`❌ ${exp.company}: No HTML generated for achievements!`);
-            }
+            console.log(`${exp.company}: Generated ${achievements.length} achievement cards`);
 
             const timelineHTML = `
                 <div class="timeline-icon category-${dominantCategory}">
@@ -430,13 +402,7 @@ class PortfolioApp {
                     <p class="mb-3">${exp?.description || ''}</p>
                     <div class="achievements">
                         <h6 class="fw-bold mb-3">주요 성과</h6>
-                        <div style="background: #e3f2fd; border: 2px solid #2196f3; padding: 8px; margin: 8px 0; border-radius: 4px;">
-                            🔍 DEBUG: Achievement 섹션 시작 - ${achievements.length}개 성과 표시 예정
-                        </div>
                         ${achievementsHtml || '<p class="text-muted">성과 정보가 없습니다.</p>'}
-                        <div style="background: #e8f5e8; border: 2px solid #4caf50; padding: 8px; margin: 8px 0; border-radius: 4px;">
-                            ✅ DEBUG: Achievement 섹션 끝
-                        </div>
                     </div>
                 </div>
             `;
@@ -447,32 +413,20 @@ class PortfolioApp {
             const makeAchievementsVisible = () => {
                 const achievementCards = item.querySelectorAll('.achievement-card');
                 achievementCards.forEach((card, cardIndex) => {
-                    // Force visibility with multiple approaches
+                    // Ensure visibility
                     card.style.opacity = '1';
                     card.style.transform = 'translate3d(0, 0, 0)';
-                    card.style.visibility = 'visible';
-                    card.style.display = 'block';
                     card.classList.add('visible-content');
                     card.classList.remove('prepare-animation');
-                    
-                    // Add a visible border for debugging
-                    card.style.border = '1px solid #e5e7eb';
-                    card.style.marginBottom = '1rem';
-                    card.style.padding = '1rem';
-                    card.style.backgroundColor = 'white';
                 });
-                console.log(`${exp.company}: FORCED ${achievementCards.length} achievement cards to be visible`);
                 
-                // Double-check visibility after a brief delay
+                // Ensure visibility is maintained
                 setTimeout(() => {
-                    const stillHidden = item.querySelectorAll('.achievement-card[style*="opacity: 0"], .achievement-card:not([style*="opacity: 1"])');
-                    if (stillHidden.length > 0) {
-                        console.error(`${exp.company}: ${stillHidden.length} achievement cards are still hidden!`);
-                        stillHidden.forEach(card => {
-                            card.style.opacity = '1 !important';
-                            card.style.transform = 'none !important';
-                        });
-                    }
+                    const hiddenCards = item.querySelectorAll('.achievement-card[style*="opacity: 0"]');
+                    hiddenCards.forEach(card => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translate3d(0, 0, 0)';
+                    });
                 }, 100);
             };
             
@@ -541,6 +495,94 @@ class PortfolioApp {
             '최적화': '🔧'
         };
         return iconMap[type] || '';
+    }
+
+    groupAchievementsByCategory(achievements) {
+        const categories = {};
+        achievements.forEach(achievement => {
+            const category = achievement?.category || '기타';
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push(achievement);
+        });
+        return categories;
+    }
+
+    getCategoryInfo(category) {
+        const categoryInfo = {
+            '리더십개발': { icon: 'bi-person-badge', color: 'var(--category-leadership)', name: '리더십개발' },
+            '인재관리': { icon: 'bi-people', color: 'var(--category-talent)', name: '인재관리' },
+            '교육기획': { icon: 'bi-mortarboard', color: 'var(--category-education)', name: '교육기획' },
+            '시스템혁신': { icon: 'bi-gear', color: 'var(--category-system)', name: '시스템혁신' },
+            '조직개발': { icon: 'bi-diagram-3', color: 'var(--category-organization)', name: '조직개발' },
+            '채용관리': { icon: 'bi-person-plus', color: 'var(--category-recruitment)', name: '채용관리' },
+            '기타': { icon: 'bi-building', color: 'var(--primary-color)', name: '기타' }
+        };
+        return categoryInfo[category] || categoryInfo['기타'];
+    }
+
+    renderGroupedAchievements(achievementsByCategory) {
+        const categoryOrder = ['리더십개발', '인재관리', '교육기획', '시스템혁신', '조직개발', '채용관리', '기타'];
+        let html = '';
+
+        categoryOrder.forEach(category => {
+            if (achievementsByCategory[category] && achievementsByCategory[category].length > 0) {
+                const categoryInfo = this.getCategoryInfo(category);
+                html += this.renderCategorySection(category, categoryInfo, achievementsByCategory[category]);
+            }
+        });
+
+        return html;
+    }
+
+    renderCategorySection(category, categoryInfo, achievements) {
+        const achievementCards = achievements.map((achievement, index) => {
+            return this.renderAchievementCard(achievement, category);
+        }).join('');
+
+        return `
+            <div class="achievement-category-section category-${category} mb-4">
+                <div class="category-header mb-3" style="border-left: 4px solid ${categoryInfo.color};">
+                    <h6 class="category-title mb-0" style="color: ${categoryInfo.color};">
+                        <i class="bi ${categoryInfo.icon} me-2"></i>
+                        ${categoryInfo.name} (${achievements.length}개)
+                    </h6>
+                </div>
+                <div class="category-achievements">
+                    ${achievementCards}
+                </div>
+            </div>
+        `;
+    }
+
+    renderAchievementCard(achievement, category) {
+        try {
+            const categoryClass = achievement?.category ? `category-${achievement.category}` : '';
+            const impactClass = achievement?.impactLevel ? `impact-${achievement.impactLevel}` : '';
+            const innovationClass = achievement?.innovationType ? `innovation-${achievement.innovationType}` : '';
+            const collaborationClass = achievement?.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
+            
+            return `
+                <div class="achievement-card visible-content ${categoryClass} ${collaborationClass}" style="opacity: 1; transform: translate3d(0, 0, 0);">
+                    <div class="achievement-meta d-flex justify-content-between align-items-start mb-2">
+                        <span class="achievement-category-badge" style="background: ${this.getCategoryInfo(category).color}20; color: ${this.getCategoryInfo(category).color};">
+                            ${category}
+                        </span>
+                        <div class="achievement-indicators">
+                            <div class="impact-indicator ${impactClass}"></div>
+                            <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement?.innovationType)}</div>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold text-primary mb-2">${achievement?.name || '제목 없음'}</h6>
+                    <p class="text-muted small mb-2">${achievement?.duration || ''}</p>
+                    <p class="mb-0">${achievement?.details || ''}</p>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error rendering achievement card:', error);
+            return '<div class="achievement-card visible-content" style="opacity: 1; transform: translate3d(0, 0, 0);"><p class="text-muted">성과 정보 로딩 중...</p></div>';
+        }
     }
 
     populateEducationSection() {
@@ -1050,6 +1092,159 @@ class PortfolioApp {
         return -c / 2 * (t * (t - 2) - 1) + b;
     }
 
+    initializeScrollTracking() {
+        try {
+            // Create progress bar
+            this.createTimelineProgressBar();
+            
+            // Create minimap
+            this.createTimelineMinimap();
+            
+            // Set up scroll listener
+            this.setupScrollListener();
+            
+            console.log('Scroll tracking initialized');
+        } catch (error) {
+            console.error('Failed to initialize scroll tracking:', error);
+        }
+    }
+
+    createTimelineProgressBar() {
+        // Remove existing progress bar if any
+        const existingProgress = document.querySelector('.timeline-progress');
+        if (existingProgress) {
+            existingProgress.remove();
+        }
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'timeline-progress';
+        progressBar.style.height = '0px';
+        document.body.appendChild(progressBar);
+        
+        this.progressBar = progressBar;
+    }
+
+    createTimelineMinimap() {
+        // Remove existing minimap if any
+        const existingMinimap = document.querySelector('.timeline-minimap');
+        if (existingMinimap) {
+            existingMinimap.remove();
+        }
+
+        const experienceSection = document.getElementById('experience');
+        if (!experienceSection) return;
+
+        const minimap = document.createElement('div');
+        minimap.className = 'timeline-minimap';
+
+        // Get all timeline items
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        timelineItems.forEach((item, index) => {
+            const company = item.querySelector('h4')?.textContent || `Section ${index + 1}`;
+            
+            const dot = document.createElement('div');
+            dot.className = 'minimap-dot';
+            dot.setAttribute('data-company', company);
+            dot.setAttribute('data-index', index);
+            
+            // Add click handler
+            dot.addEventListener('click', () => {
+                item.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            });
+            
+            minimap.appendChild(dot);
+        });
+
+        document.body.appendChild(minimap);
+        this.minimap = minimap;
+    }
+
+    setupScrollListener() {
+        const updateScrollProgress = () => {
+            if (!this.progressBar) return;
+
+            const experienceSection = document.getElementById('experience');
+            if (!experienceSection) return;
+
+            const sectionRect = experienceSection.getBoundingClientRect();
+            const sectionTop = sectionRect.top + window.scrollY;
+            const sectionHeight = sectionRect.height;
+            const currentScroll = window.scrollY;
+            const windowHeight = window.innerHeight;
+
+            // Calculate progress within the experience section
+            const sectionStart = sectionTop - windowHeight * 0.5;
+            const sectionEnd = sectionTop + sectionHeight - windowHeight * 0.5;
+            
+            if (currentScroll >= sectionStart && currentScroll <= sectionEnd) {
+                const progress = (currentScroll - sectionStart) / (sectionEnd - sectionStart);
+                const progressHeight = Math.max(0, Math.min(100, progress * 100));
+                
+                this.progressBar.style.height = `${progressHeight}vh`;
+                this.progressBar.style.opacity = '1';
+                
+                // Update minimap
+                this.updateMinimap();
+            } else if (currentScroll < sectionStart) {
+                this.progressBar.style.height = '0px';
+                this.progressBar.style.opacity = '0.5';
+            } else {
+                this.progressBar.style.height = '100vh';
+                this.progressBar.style.opacity = '0.5';
+            }
+        };
+
+        // Throttled scroll listener
+        let scrollTimeout;
+        const scrollHandler = () => {
+            if (scrollTimeout) return;
+            
+            scrollTimeout = requestAnimationFrame(() => {
+                updateScrollProgress();
+                scrollTimeout = null;
+            });
+        };
+
+        window.addEventListener('scroll', scrollHandler, { passive: true });
+        
+        // Initial update
+        updateScrollProgress();
+        
+        // Store for cleanup
+        this.scrollHandler = scrollHandler;
+    }
+
+    updateMinimap() {
+        if (!this.minimap) return;
+
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        const dots = this.minimap.querySelectorAll('.minimap-dot');
+        
+        let activeIndex = -1;
+        const windowCenter = window.innerHeight / 2 + window.scrollY;
+
+        timelineItems.forEach((item, index) => {
+            const rect = item.getBoundingClientRect();
+            const itemCenter = rect.top + rect.height / 2 + window.scrollY;
+            
+            if (Math.abs(itemCenter - windowCenter) < window.innerHeight * 0.3) {
+                activeIndex = index;
+            }
+        });
+
+        // Update dot states
+        dots.forEach((dot, index) => {
+            if (index === activeIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
     // Enhanced cleanup method
     cleanup() {
         if (this.observers) {
@@ -1063,6 +1258,17 @@ class PortfolioApp {
         if (this.navigationUpdateTimeout) {
             clearTimeout(this.navigationUpdateTimeout);
         }
+        
+        if (this.scrollHandler) {
+            window.removeEventListener('scroll', this.scrollHandler);
+        }
+        
+        // Remove progress elements
+        const progressBar = document.querySelector('.timeline-progress');
+        if (progressBar) progressBar.remove();
+        
+        const minimap = document.querySelector('.timeline-minimap');
+        if (minimap) minimap.remove();
     }
 
     showErrorMessage() {
