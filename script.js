@@ -26,16 +26,55 @@ class PortfolioApp {
 
     populateAllSections() {
         try {
+            console.log('Starting to populate all sections...');
+            
+            console.log('1. Populating hero section...');
             this.populateHeroSection();
+            
+            console.log('2. Populating experience section...');
             this.populateExperienceSection();
+            
+            console.log('3. Populating education section...');
             this.populateEducationSection();
+            
+            console.log('4. Populating skills section...');
             this.populateSkillsSection();
+            
+            console.log('5. Populating certifications section...');
             this.populateCertificationsSection();
+            
+            console.log('6. Populating projects section...');
             this.populateProjectsSection();
+            
+            console.log('7. Populating publications section...');
             this.populatePublicationsSection();
+            
+            console.log('8. Populating contact section...');
             this.populateContactSection();
+            
+            console.log('All sections populated successfully!');
         } catch (error) {
             console.error('Section population failed:', error);
+            this.showSectionError(error);
+        }
+    }
+
+    showSectionError(error) {
+        console.error('Critical error in section population:', error);
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-warning m-3';
+        errorAlert.innerHTML = `
+            <h5>일부 섹션 로딩 중...</h5>
+            <p>포트폴리오 데이터를 불러오고 있습니다. 잠시만 기다려주세요.</p>
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        `;
+        
+        // Add error alert to the top of the page
+        const firstSection = document.querySelector('section');
+        if (firstSection) {
+            firstSection.insertBefore(errorAlert, firstSection.firstChild);
         }
     }
 
@@ -138,6 +177,9 @@ class PortfolioApp {
                 return;
             }
 
+            // Clear existing content first
+            timelineContainer.innerHTML = '';
+
             // Add career summary section
             this.addCareerSummary();
 
@@ -145,17 +187,44 @@ class PortfolioApp {
             this.addFilterControls();
 
             if (experience.length > 0) {
+                console.log(`Creating ${experience.length} timeline items...`);
                 experience.forEach((exp, index) => {
-                    const timelineItem = this.createTimelineItem(exp, index);
-                    timelineContainer.appendChild(timelineItem);
+                    try {
+                        const timelineItem = this.createTimelineItem(exp, index);
+                        if (timelineItem) {
+                            timelineContainer.appendChild(timelineItem);
+                            console.log(`Timeline item ${index + 1} created successfully for ${exp.company}`);
+                        } else {
+                            console.error(`Failed to create timeline item ${index + 1}`);
+                        }
+                    } catch (itemError) {
+                        console.error(`Error creating timeline item ${index + 1}:`, itemError);
+                    }
                 });
                 console.log(`Experience section populated with ${experience.length} items`);
+                
+                // Force a layout reflow to ensure content is visible
+                timelineContainer.style.display = 'none';
+                timelineContainer.offsetHeight; // Trigger reflow
+                timelineContainer.style.display = '';
             } else {
-                console.log('No experience data found');
-                timelineContainer.innerHTML = '<p class="text-center text-muted">경력 정보를 불러오는 중입니다...</p>';
+                console.log('No experience data found, showing fallback message');
+                timelineContainer.innerHTML = '<div class="text-center p-4"><p class="text-muted">경력 정보를 불러오는 중입니다...</p></div>';
             }
         } catch (error) {
             console.error('Experience section population failed:', error);
+            // Show fallback content
+            const timelineContainer = document.getElementById('experience-timeline');
+            if (timelineContainer) {
+                timelineContainer.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="alert alert-warning" role="alert">
+                            <h5>경력 정보 로딩 중</h5>
+                            <p class="mb-0">잠시만 기다려주세요...</p>
+                        </div>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -293,57 +362,102 @@ class PortfolioApp {
     }
 
     createTimelineItem(exp, index) {
-        const item = document.createElement('div');
-        item.className = 'timeline-item animate-on-scroll';
-        
-        // Get dominant category for timeline icon
-        const dominantCategory = this.getDominantCategory(exp.achievements);
-        
-        const achievementsHtml = exp.achievements.map(achievement => {
-            const categoryClass = achievement.category ? `category-${achievement.category}` : '';
-            const impactClass = achievement.impactLevel ? `impact-${achievement.impactLevel}` : '';
-            const innovationClass = achievement.innovationType ? `innovation-${achievement.innovationType}` : '';
-            const collaborationClass = achievement.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
+        try {
+            console.log(`Creating timeline item for ${exp?.company || 'Unknown company'}`);
             
-            return `
-                <div class="achievement-card ${categoryClass} ${collaborationClass}">
-                    <div class="impact-indicator ${impactClass}"></div>
-                    <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement.innovationType)}</div>
-                    <h6 class="fw-bold text-primary mb-2">${achievement.name}</h6>
-                    <p class="text-muted small mb-2">${achievement.duration}</p>
-                    <p class="mb-0">${achievement.details}</p>
+            if (!exp) {
+                console.error('Experience data is null or undefined');
+                return null;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'timeline-item animate-on-scroll';
+            
+            // Safely handle achievements array
+            const achievements = exp.achievements || [];
+            console.log(`Processing ${achievements.length} achievements for ${exp.company}`);
+            
+            // Get dominant category for timeline icon
+            const dominantCategory = this.getDominantCategory(achievements);
+            
+            const achievementsHtml = achievements.map((achievement, achIndex) => {
+                try {
+                    const categoryClass = achievement?.category ? `category-${achievement.category}` : '';
+                    const impactClass = achievement?.impactLevel ? `impact-${achievement.impactLevel}` : '';
+                    const innovationClass = achievement?.innovationType ? `innovation-${achievement.innovationType}` : '';
+                    const collaborationClass = achievement?.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
+                    
+                    return `
+                        <div class="achievement-card ${categoryClass} ${collaborationClass}">
+                            <div class="impact-indicator ${impactClass}"></div>
+                            <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement?.innovationType)}</div>
+                            <h6 class="fw-bold text-primary mb-2">${achievement?.name || '제목 없음'}</h6>
+                            <p class="text-muted small mb-2">${achievement?.duration || ''}</p>
+                            <p class="mb-0">${achievement?.details || ''}</p>
+                        </div>
+                    `;
+                } catch (achError) {
+                    console.error(`Error processing achievement ${achIndex}:`, achError);
+                    return '<div class="achievement-card"><p class="text-muted">성과 정보 로딩 중...</p></div>';
+                }
+            }).join('');
+
+            item.innerHTML = `
+                <div class="timeline-icon category-${dominantCategory}">
+                    <i class="bi ${this.getCategoryIcon(dominantCategory)}"></i>
+                </div>
+                <div class="timeline-content">
+                    <span class="timeline-period">${exp?.period || ''}</span>
+                    <h4 class="fw-bold mb-2">${exp?.company || '회사명 없음'}</h4>
+                    <h5 class="text-primary mb-2">${exp?.title || '직책 없음'}</h5>
+                    <p class="text-muted mb-2">${exp?.team || ''} | ${exp?.location || ''}</p>
+                    <p class="mb-3">${exp?.description || ''}</p>
+                    <div class="achievements">
+                        <h6 class="fw-bold mb-3">주요 성과</h6>
+                        ${achievementsHtml || '<p class="text-muted">성과 정보가 없습니다.</p>'}
+                    </div>
                 </div>
             `;
-        }).join('');
-
-        item.innerHTML = `
-            <div class="timeline-icon category-${dominantCategory}">
-                <i class="bi ${this.getCategoryIcon(dominantCategory)}"></i>
-            </div>
-            <div class="timeline-content">
-                <span class="timeline-period">${exp.period}</span>
-                <h4 class="fw-bold mb-2">${exp.company}</h4>
-                <h5 class="text-primary mb-2">${exp.title}</h5>
-                <p class="text-muted mb-2">${exp.team} | ${exp.location}</p>
-                <p class="mb-3">${exp.description}</p>
-                <div class="achievements">
-                    <h6 class="fw-bold mb-3">주요 성과</h6>
-                    ${achievementsHtml}
+            
+            console.log(`Timeline item created successfully for ${exp.company}`);
+            return item;
+        } catch (error) {
+            console.error('Error in createTimelineItem:', error);
+            // Return a fallback item
+            const fallbackItem = document.createElement('div');
+            fallbackItem.className = 'timeline-item';
+            fallbackItem.innerHTML = `
+                <div class="timeline-icon">
+                    <i class="bi bi-building"></i>
                 </div>
-            </div>
-        `;
-        
-        return item;
+                <div class="timeline-content">
+                    <div class="alert alert-warning">
+                        <h6>경력 정보 로딩 중</h6>
+                        <p class="mb-0">데이터를 불러오는 중입니다...</p>
+                    </div>
+                </div>
+            `;
+            return fallbackItem;
+        }
     }
 
     getDominantCategory(achievements) {
+        if (!achievements || achievements.length === 0) {
+            return '기타';
+        }
+        
         const categoryCount = {};
         achievements.forEach(achievement => {
-            const category = achievement.category || '기타';
+            const category = achievement?.category || '기타';
             categoryCount[category] = (categoryCount[category] || 0) + 1;
         });
         
-        return Object.keys(categoryCount).reduce((a, b) => 
+        const categories = Object.keys(categoryCount);
+        if (categories.length === 0) {
+            return '기타';
+        }
+        
+        return categories.reduce((a, b) => 
             categoryCount[a] > categoryCount[b] ? a : b
         );
     }
