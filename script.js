@@ -376,7 +376,7 @@ class PortfolioApp {
             }
 
             const item = document.createElement('div');
-            item.className = 'timeline-item animate-on-scroll';
+            item.className = 'timeline-item animate-on-scroll animated';
             
             // Safely handle achievements array
             const achievements = exp.achievements || [];
@@ -387,14 +387,13 @@ class PortfolioApp {
             
             const achievementsHtml = achievements.map((achievement, achIndex) => {
                 try {
-                    console.log(`Processing achievement ${achIndex}:`, achievement?.name);
                     const categoryClass = achievement?.category ? `category-${achievement.category}` : '';
                     const impactClass = achievement?.impactLevel ? `impact-${achievement.impactLevel}` : '';
                     const innovationClass = achievement?.innovationType ? `innovation-${achievement.innovationType}` : '';
                     const collaborationClass = achievement?.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
                     
-                    const htmlResult = `
-                        <div class="achievement-card ${categoryClass} ${collaborationClass}" style="display: block !important; opacity: 1 !important; visibility: visible !important; background: white; border: 1px solid #ddd; margin: 10px 0; padding: 15px;">
+                    return `
+                        <div class="achievement-card animated ${categoryClass} ${collaborationClass}">
                             <div class="impact-indicator ${impactClass}"></div>
                             <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement?.innovationType)}</div>
                             <h6 class="fw-bold text-primary mb-2">${achievement?.name || '제목 없음'}</h6>
@@ -402,16 +401,13 @@ class PortfolioApp {
                             <p class="mb-0">${achievement?.details || ''}</p>
                         </div>
                     `;
-                    console.log(`Achievement ${achIndex} HTML generated successfully`);
-                    return htmlResult;
                 } catch (achError) {
                     console.error(`Error processing achievement ${achIndex}:`, achError);
-                    return '<div class="achievement-card"><p class="text-muted">성과 정보 로딩 중...</p></div>';
+                    return '<div class="achievement-card animated"><p class="text-muted">성과 정보 로딩 중...</p></div>';
                 }
             }).join('');
             
-            console.log(`Total achievements HTML length: ${achievementsHtml.length}`);
-            console.log(`Achievements HTML preview:`, achievementsHtml.substring(0, 200));
+            console.log(`${exp.company}: Generated ${achievements.length} achievement cards`);
 
             const timelineHTML = `
                 <div class="timeline-icon category-${dominantCategory}">
@@ -425,26 +421,24 @@ class PortfolioApp {
                     <p class="mb-3">${exp?.description || ''}</p>
                     <div class="achievements">
                         <h6 class="fw-bold mb-3">주요 성과</h6>
-                        <div style="background: yellow; padding: 10px; margin: 10px;">테스트: Achievement 섹션이 여기에 표시되어야 합니다.</div>
                         ${achievementsHtml || '<p class="text-muted">성과 정보가 없습니다.</p>'}
-                        <div style="background: lightgreen; padding: 10px; margin: 10px;">테스트: Achievement 섹션 끝</div>
                     </div>
                 </div>
             `;
             
-            console.log(`Timeline HTML for ${exp.company}:`, timelineHTML.substring(0, 300));
             item.innerHTML = timelineHTML;
             
-            // Verify that the item has content
+            // Ensure achievement cards are visible immediately
             setTimeout(() => {
                 const achievementCards = item.querySelectorAll('.achievement-card');
-                console.log(`${exp.company} - Achievement cards found in DOM: ${achievementCards.length}`);
-                if (achievementCards.length === 0) {
-                    console.error(`No achievement cards found for ${exp.company}! HTML content:`, item.innerHTML.substring(0, 500));
-                }
-            }, 100);
+                achievementCards.forEach(card => {
+                    if (!card.classList.contains('animated')) {
+                        card.classList.add('animated');
+                    }
+                });
+                console.log(`${exp.company}: ${achievementCards.length} achievement cards made visible`);
+            }, 50);
             
-            console.log(`Timeline item created successfully for ${exp.company}`);
             return item;
         } catch (error) {
             console.error('Error in createTimelineItem:', error);
