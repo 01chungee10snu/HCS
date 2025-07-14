@@ -14,7 +14,8 @@
       "Bash(mv:*)",
       "WebFetch(domain:github.com)",
       "Bash(git push:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }
