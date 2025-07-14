@@ -6,7 +6,7 @@
     <title>한충석 - 성장 타임라인</title>
     
     <!-- Vis.js CSS -->
-    <link href="https://unpkg.com/vis-timeline@7.7.3/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://unpkg.com/vis-timeline@7.7.0/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -442,7 +442,7 @@
     </div>
 
     <!-- Vis.js JavaScript -->
-    <script src="https://unpkg.com/vis-timeline@7.7.3/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <script src="https://unpkg.com/vis-timeline@7.7.0/standalone/umd/vis-timeline-graph2d.min.js"></script>
     
     <script>
         // 데이터 정의 (Data.json 내용을 JavaScript 객체로 변환)
@@ -605,122 +605,187 @@
         // 데이터를 Vis.js 형식으로 변환
         function convertDataToTimelineItems() {
             const timelineItems = [];
+            console.log('Converting data to timeline items...');
             
             // 교육 데이터 변환
-            portfolioData.education.forEach(edu => {
-                timelineItems.push({
-                    id: `education_${timelineItems.length}`,
-                    content: `${edu.institution}<br><small>${edu.degree} - ${edu.major}</small>`,
-                    start: new Date(edu.startDate),
-                    end: edu.endDate ? new Date(edu.endDate) : null,
-                    group: 'education',
-                    className: 'education',
-                    type: edu.endDate ? 'range' : 'point',
-                    data: {
-                        category: 'education',
-                        title: `${edu.degree} - ${edu.institution}`,
-                        subtitle: edu.period,
-                        details: {
-                            '전공': edu.major,
-                            'GPA': edu.GPA || 'N/A',
-                            '상태': edu.status || '졸업'
-                        }
+            portfolioData.education.forEach((edu, index) => {
+                try {
+                    const startDate = new Date(edu.startDate);
+                    const endDate = edu.endDate ? new Date(edu.endDate) : null;
+                    
+                    if (isNaN(startDate.getTime())) {
+                        console.warn('Invalid start date for education:', edu);
+                        return;
                     }
-                });
+                    
+                    timelineItems.push({
+                        id: `education_${index}`,
+                        content: `${edu.institution}<br><small>${edu.degree} - ${edu.major}</small>`,
+                        start: startDate,
+                        end: endDate,
+                        group: 'education',
+                        className: 'education',
+                        type: endDate ? 'range' : 'point',
+                        data: {
+                            category: 'education',
+                            title: `${edu.degree} - ${edu.institution}`,
+                            subtitle: edu.period,
+                            details: {
+                                '전공': edu.major,
+                                'GPA': edu.GPA || 'N/A',
+                                '상태': edu.status || '졸업'
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error processing education item:', edu, error);
+                }
             });
+            console.log('Education items processed:', timelineItems.length);
 
             // 경력 데이터 변환
-            portfolioData.experience.forEach(exp => {
-                timelineItems.push({
-                    id: `career_${timelineItems.length}`,
-                    content: `${exp.company}<br><small>${exp.title}</small>`,
-                    start: new Date(exp.startDate),
-                    end: exp.endDate ? new Date(exp.endDate) : new Date(),
-                    group: 'career',
-                    className: 'career',
-                    type: 'range',
-                    data: {
-                        category: 'career',
-                        title: `${exp.title} - ${exp.company}`,
-                        subtitle: exp.period,
-                        details: {
-                            '설명': exp.description
-                        }
+            portfolioData.experience.forEach((exp, index) => {
+                try {
+                    const startDate = new Date(exp.startDate);
+                    const endDate = exp.endDate ? new Date(exp.endDate) : new Date();
+                    
+                    if (isNaN(startDate.getTime())) {
+                        console.warn('Invalid start date for experience:', exp);
+                        return;
                     }
-                });
+                    
+                    timelineItems.push({
+                        id: `career_${index}`,
+                        content: `${exp.company}<br><small>${exp.title}</small>`,
+                        start: startDate,
+                        end: endDate,
+                        group: 'career',
+                        className: 'career',
+                        type: 'range',
+                        data: {
+                            category: 'career',
+                            title: `${exp.title} - ${exp.company}`,
+                            subtitle: exp.period,
+                            details: {
+                                '설명': exp.description
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error processing experience item:', exp, error);
+                }
             });
+            console.log('Experience items processed:', timelineItems.length);
 
             // 프로젝트 데이터 변환
-            portfolioData.projects.forEach(project => {
-                timelineItems.push({
-                    id: `project_${timelineItems.length}`,
-                    content: `${project.name}<br><small>${project.category}</small>`,
-                    start: new Date(project.startDate),
-                    end: new Date(project.endDate),
-                    group: 'project',
-                    className: 'project',
-                    type: 'range',
-                    data: {
-                        category: 'project',
-                        title: project.name,
-                        subtitle: `${project.startDate} ~ ${project.endDate}`,
-                        details: {
-                            '설명': project.description,
-                            '상태': project.status,
-                            '카테고리': project.category
-                        }
+            portfolioData.projects.forEach((project, index) => {
+                try {
+                    const startDate = new Date(project.startDate);
+                    const endDate = new Date(project.endDate);
+                    
+                    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                        console.warn('Invalid dates for project:', project);
+                        return;
                     }
-                });
+                    
+                    timelineItems.push({
+                        id: `project_${index}`,
+                        content: `${project.name}<br><small>${project.category}</small>`,
+                        start: startDate,
+                        end: endDate,
+                        group: 'project',
+                        className: 'project',
+                        type: 'range',
+                        data: {
+                            category: 'project',
+                            title: project.name,
+                            subtitle: `${project.startDate} ~ ${project.endDate}`,
+                            details: {
+                                '설명': project.description,
+                                '상태': project.status,
+                                '카테고리': project.category
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error processing project item:', project, error);
+                }
             });
+            console.log('Project items processed:', timelineItems.length);
 
             // 출간물 데이터 변환
-            portfolioData.publications.forEach(pub => {
-                timelineItems.push({
-                    id: `publication_${timelineItems.length}`,
-                    content: `${pub.title.substring(0, 30)}...<br><small>${pub.publication}</small>`,
-                    start: new Date(pub.date),
-                    group: 'publication',
-                    className: 'publication',
-                    type: 'point',
-                    data: {
-                        category: 'publication',
-                        title: pub.title,
-                        subtitle: pub.date,
-                        details: {
-                            '발행처': pub.publication,
-                            '저자': pub.author
-                        }
+            portfolioData.publications.forEach((pub, index) => {
+                try {
+                    const pubDate = new Date(pub.date);
+                    
+                    if (isNaN(pubDate.getTime())) {
+                        console.warn('Invalid date for publication:', pub);
+                        return;
                     }
-                });
+                    
+                    timelineItems.push({
+                        id: `publication_${index}`,
+                        content: `${pub.title.substring(0, 30)}...<br><small>${pub.publication}</small>`,
+                        start: pubDate,
+                        group: 'publication',
+                        className: 'publication',
+                        type: 'point',
+                        data: {
+                            category: 'publication',
+                            title: pub.title,
+                            subtitle: pub.date,
+                            details: {
+                                '발행처': pub.publication,
+                                '저자': pub.author
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error processing publication item:', pub, error);
+                }
             });
+            console.log('Publication items processed:', timelineItems.length);
 
             // 자격증 데이터 변환
-            portfolioData.certifications.forEach(cert => {
-                timelineItems.push({
-                    id: `certification_${timelineItems.length}`,
-                    content: `${cert.name}<br><small>${cert.grade_score}</small>`,
-                    start: new Date(cert.date),
-                    group: 'certification',
-                    className: 'certification',
-                    type: 'point',
-                    data: {
-                        category: 'certification',
-                        title: cert.name,
-                        subtitle: cert.date,
-                        details: {
-                            '발급기관': cert.issuer,
-                            '등급/점수': cert.grade_score
-                        }
+            portfolioData.certifications.forEach((cert, index) => {
+                try {
+                    const certDate = new Date(cert.date);
+                    
+                    if (isNaN(certDate.getTime())) {
+                        console.warn('Invalid date for certification:', cert);
+                        return;
                     }
-                });
+                    
+                    timelineItems.push({
+                        id: `certification_${index}`,
+                        content: `${cert.name}<br><small>${cert.grade_score}</small>`,
+                        start: certDate,
+                        group: 'certification',
+                        className: 'certification',
+                        type: 'point',
+                        data: {
+                            category: 'certification',
+                            title: cert.name,
+                            subtitle: cert.date,
+                            details: {
+                                '발급기관': cert.issuer,
+                                '등급/점수': cert.grade_score
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error processing certification item:', cert, error);
+                }
             });
-
+            console.log('Certification items processed:', timelineItems.length);
+            
+            console.log('Total timeline items:', timelineItems.length);
             return timelineItems;
         }
 
         // 그룹 정의
         function createGroups() {
-            return new vis.DataSet([
+            const groupData = [
                 {
                     id: 'education',
                     content: '<i class="bi bi-mortarboard"></i> 교육',
@@ -751,18 +816,38 @@
                     order: 5,
                     style: 'color: var(--certification-color);'
                 }
-            ]);
+            ];
+            
+            console.log('Creating groups:', groupData.length);
+            return new vis.DataSet(groupData);
         }
 
         // Timeline 초기화
         function initializeTimeline() {
+            // Check if Vis.js is loaded
+            if (typeof vis === 'undefined') {
+                console.error('Vis.js library not loaded');
+                document.getElementById('timeline').innerHTML = '<div class="alert alert-danger">Vis.js 라이브러리를 로드할 수 없습니다.</div>';
+                return;
+            }
+            
             const container = document.getElementById('timeline');
             container.className = '';
             container.innerHTML = '';
 
             allItems = convertDataToTimelineItems();
+            
+            if (!allItems || allItems.length === 0) {
+                console.error('No timeline items generated');
+                container.innerHTML = '<div class="alert alert-warning">표시할 타임라인 데이터가 없습니다.</div>';
+                return;
+            }
+            
             items = new vis.DataSet(allItems);
             groups = createGroups();
+            
+            console.log('Timeline items created:', allItems.length);
+            console.log('Groups created:', groups.length);
 
             const options = {
                 orientation: 'top',
@@ -790,7 +875,14 @@
                 }
             };
 
-            timeline = new vis.Timeline(container, items, groups, options);
+            try {
+                timeline = new vis.Timeline(container, items, groups, options);
+                console.log('Timeline created successfully');
+            } catch (error) {
+                console.error('Timeline creation failed:', error);
+                container.innerHTML = '<div class="alert alert-danger">타임라인 생성에 실패했습니다: ' + error.message + '</div>';
+                return;
+            }
 
             // 이벤트 리스너
             timeline.on('select', function (event) {
@@ -904,8 +996,15 @@
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTimeline();
-            setupFilters();
+            console.log('DOM loaded, initializing timeline...');
+            try {
+                initializeTimeline();
+                setupFilters();
+                console.log('Timeline initialized successfully!');
+            } catch (error) {
+                console.error('Timeline initialization failed:', error);
+                document.getElementById('timeline').innerHTML = '<div class="alert alert-danger">타임라인 로딩에 실패했습니다. 페이지를 새로고침해주세요.</div>';
+            }
         });
     </script>
 </body>

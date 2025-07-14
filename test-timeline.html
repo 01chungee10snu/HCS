@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Test</title>
+    <link href="https://unpkg.com/vis-timeline@7.7.0/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #timeline { height: 400px; border: 1px solid #ccc; }
+        .education { background-color: #2196F3; color: white; }
+        .career { background-color: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Timeline Test</h1>
+    <div id="timeline"></div>
+    <div id="debug"></div>
+
+    <script src="https://unpkg.com/vis-timeline@7.7.0/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugDiv = document.getElementById('debug');
+            
+            function log(message) {
+                console.log(message);
+                debugDiv.innerHTML += message + '<br>';
+            }
+            
+            log('Starting timeline test...');
+            
+            // Check if vis is loaded
+            if (typeof vis === 'undefined') {
+                log('ERROR: vis is not defined');
+                return;
+            } else {
+                log('vis library loaded successfully');
+            }
+            
+            // Create test data
+            const items = new vis.DataSet([
+                {
+                    id: 1,
+                    content: 'Test Education',
+                    start: new Date(2020, 0, 1),
+                    end: new Date(2022, 0, 1),
+                    group: 'education',
+                    className: 'education'
+                },
+                {
+                    id: 2,
+                    content: 'Test Career',
+                    start: new Date(2022, 0, 1),
+                    end: new Date(2024, 0, 1),
+                    group: 'career',
+                    className: 'career'
+                }
+            ]);
+            
+            const groups = new vis.DataSet([
+                {id: 'education', content: 'Education'},
+                {id: 'career', content: 'Career'}
+            ]);
+            
+            log('Data created, items: ' + items.length + ', groups: ' + groups.length);
+            
+            const container = document.getElementById('timeline');
+            const options = {
+                orientation: 'top',
+                start: new Date(2019, 0, 1),
+                end: new Date(2025, 0, 1)
+            };
+            
+            try {
+                const timeline = new vis.Timeline(container, items, groups, options);
+                log('Timeline created successfully!');
+            } catch (error) {
+                log('ERROR creating timeline: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
