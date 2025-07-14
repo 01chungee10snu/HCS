@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한충석 - 성장 타임라인</title>
+    
+    <!-- Vis.js CSS -->
+    <link href="https://unpkg.com/vis-timeline@7.7.3/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #1e3a8a;
+            --education-color: #2196F3;
+            --career-color: #4CAF50;
+            --project-color: #FF9800;
+            --publication-color: #9C27B0;
+            --certification-color: #F44336;
+            --background-color: #f8fafc;
+            --text-color: #334155;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .header .contact {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .controls-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .filter-btn.education {
+            border-color: var(--education-color);
+            color: var(--education-color);
+        }
+
+        .filter-btn.career {
+            border-color: var(--career-color);
+            color: var(--career-color);
+        }
+
+        .filter-btn.project {
+            border-color: var(--project-color);
+            color: var(--project-color);
+        }
+
+        .filter-btn.publication {
+            border-color: var(--publication-color);
+            color: var(--publication-color);
+        }
+
+        .filter-btn.certification {
+            border-color: var(--certification-color);
+            color: var(--certification-color);
+        }
+
+        .filter-btn.active {
+            background-color: currentColor;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background-color: currentColor;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Timeline Container */
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .timeline-header {
+            background: linear-gradient(90deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+
+        .timeline-wrapper {
+            height: 80vh;
+            position: relative;
+        }
+
+        /* Custom Vis.js Styling */
+        .vis-timeline {
+            border: none;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .vis-item {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 500;
+        }
+
+        .vis-item.education {
+            background-color: var(--education-color);
+            color: white;
+        }
+
+        .vis-item.career {
+            background-color: var(--career-color);
+            color: white;
+        }
+
+        .vis-item.project {
+            background-color: var(--project-color);
+            color: white;
+        }
+
+        .vis-item.publication {
+            background-color: var(--publication-color);
+            color: white;
+        }
+
+        .vis-item.certification {
+            background-color: var(--certification-color);
+            color: white;
+        }
+
+        .vis-item .vis-item-content {
+            padding: 8px 12px;
+            overflow: visible;
+        }
+
+        .vis-item.vis-selected {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header .subtitle {
+                font-size: 1rem;
+            }
+            
+            .controls-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                justify-content: center;
+            }
+            
+            .filter-btn {
+                flex: 1;
+                justify-content: center;
+                min-width: 100px;
+            }
+            
+            .timeline-wrapper {
+                height: 70vh;
+            }
+        }
+
+        /* Statistics */
+        .stats {
+            background: white;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--background-color);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover {
+            color: var(--text-color);
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>한충석</h1>
+        <div class="subtitle">현대제철 성장디자인팀 책임매니저</div>
+        <div class="contact">
+            <i class="bi bi-envelope"></i> brienz311@gmail.com
+            <span style="margin: 0 1rem;">|</span>
+            <i class="bi bi-geo-alt"></i> 경기도 안산시
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="controls-container">
+            <div style="font-weight: 600; color: var(--primary-color);">카테고리 필터:</div>
+            <div class="filter-group">
+                <button class="filter-btn education active" data-category="education">
+                    <i class="bi bi-mortarboard"></i> 교육
+                </button>
+                <button class="filter-btn career active" data-category="career">
+                    <i class="bi bi-building"></i> 경력
+                </button>
+                <button class="filter-btn project active" data-category="project">
+                    <i class="bi bi-code-slash"></i> 프로젝트
+                </button>
+                <button class="filter-btn publication active" data-category="publication">
+                    <i class="bi bi-journal-text"></i> 출간물
+                </button>
+                <button class="filter-btn certification active" data-category="certification">
+                    <i class="bi bi-award"></i> 자격증
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-container">
+        <div class="timeline-header">
+            <h2><i class="bi bi-clock-history"></i> 성장 타임라인</h2>
+            <p>개인의 학습과 성장 여정을 시간 순으로 확인하세요</p>
+        </div>
+        <div class="timeline-wrapper">
+            <div id="timeline" class="loading">
+                <i class="bi bi-hourglass-split"></i> 타임라인을 로딩중입니다...
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats">
+        <h3 style="text-align: center; margin-bottom: 1rem; color: var(--primary-color);">
+            <i class="bi bi-bar-chart"></i> 성장 통계
+        </h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" style="color: var(--education-color);" id="education-count">0</div>
+                <div class="stat-label">교육 과정</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" style="color: var(--career-color);" id="career-count">0</div>
+                <div class="stat-label">경력 연수</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" style="color: var(--project-color);" id="project-count">0</div>
+                <div class="stat-label">프로젝트</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" style="color: var(--publication-color);" id="publication-count">0</div>
+                <div class="stat-label">출간물</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" style="color: var(--certification-color);" id="certification-count">0</div>
+                <div class="stat-label">자격증</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="bi bi-x"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title"></div>
+                <div class="modal-subtitle" id="modal-subtitle"></div>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Vis.js JavaScript -->
+    <script src="https://unpkg.com/vis-timeline@7.7.3/standalone/umd/vis-timeline-graph2d.min.js"></script>
+    
+    <script>
+        // 데이터 정의 (Data.json 내용을 JavaScript 객체로 변환)
+        const portfolioData = {
+            "basics": {
+                "name": "한충석",
+                "currentTitle": "현대제철 성장디자인팀 책임매니저",
+                "currentCompany": "현대제철",
+                "email": "brienz311@gmail.com",
+                "location": "대한민국 경기도 안산시"
+            },
+            "education": [
+                {
+                    "institution": "서울대학교",
+                    "degree": "박사 과정",
+                    "major": "산업인력개발학과",
+                    "period": "2025.09 ~ 재학중",
+                    "startDate": "2025-09-01",
+                    "endDate": "2029-08-31",
+                    "status": "입학 예정"
+                },
+                {
+                    "institution": "서울대학교",
+                    "degree": "석사",
+                    "major": "산업인력개발학과",
+                    "period": "2021.03 ~ 2023.08",
+                    "startDate": "2021-03-01",
+                    "endDate": "2023-08-31",
+                    "GPA": "4.15/4.3",
+                    "status": "졸업"
+                },
+                {
+                    "institution": "동국대학교",
+                    "degree": "학사",
+                    "major": "행정학 (주전공), 경영학 (복수전공)",
+                    "period": "2005.03 ~ 2011.02",
+                    "startDate": "2005-03-01",
+                    "endDate": "2011-02-28",
+                    "GPA": "4.07/4.5"
+                },
+                {
+                    "institution": "창원문성고등학교",
+                    "degree": "고등학교 졸업",
+                    "major": "인문계 (문과)",
+                    "period": "2002.03 ~ 2005.02",
+                    "startDate": "2002-03-01",
+                    "endDate": "2005-02-28"
+                }
+            ],
+            "experience": [
+                {
+                    "company": "현대제철",
+                    "title": "책임매니저",
+                    "period": "2015.07 ~ 현재",
+                    "startDate": "2015-07-01",
+                    "endDate": null,
+                    "description": "인적자원개발(HRD) 분야의 교육 기획 및 운영 총괄"
+                },
+                {
+                    "company": "현대하이스코",
+                    "title": "대리",
+                    "period": "2010.10 ~ 2015.06",
+                    "startDate": "2010-10-01",
+                    "endDate": "2015-06-30",
+                    "description": "대졸 신입사원 채용 및 교육 기획·운영 업무 담당"
+                }
+            ],
+            "projects": [
+                {
+                    "name": "HCS 포트폴리오 웹사이트",
+                    "description": "개인 포트폴리오를 위한 반응형 웹사이트 개발",
+                    "startDate": "2024-12-01",
+                    "endDate": "2024-12-31",
+                    "status": "완료",
+                    "category": "웹개발"
+                },
+                {
+                    "name": "데이터 과학을 위한 실용 통계학",
+                    "description": "Python을 활용한 데이터 과학 및 통계 분석 프로젝트",
+                    "startDate": "2024-01-01",
+                    "endDate": "2024-06-30",
+                    "status": "완료",
+                    "category": "데이터분석"
+                },
+                {
+                    "name": "ADK Python 프로젝트",
+                    "description": "Python을 활용한 데이터 처리 및 분석 도구 개발",
+                    "startDate": "2023-09-01",
+                    "endDate": "2024-02-29",
+                    "status": "완료",
+                    "category": "자동화"
+                }
+            ],
+            "publications": [
+                {
+                    "title": "생성형 AI 학습모임을 통한 HR 혁신: 현대제철 Case Study",
+                    "publication": "월간 인사관리 (No.421)",
+                    "date": "2024-09-01",
+                    "author": "한충석"
+                },
+                {
+                    "title": "대기업 사무직 근로자의 경력탄력성과 팔로워십의 관계에서 학습지원환경의 조절효과",
+                    "publication": "석사 학위논문, 서울대학교 대학원",
+                    "date": "2023-08-01",
+                    "author": "한충석"
+                }
+            ],
+            "certifications": [
+                {
+                    "name": "SPA 영어말하기 평가",
+                    "issuer": "SPA 위원회",
+                    "date": "2021-02-01",
+                    "grade_score": "Level 45"
+                },
+                {
+                    "name": "新 HSK 중국어 능력시험",
+                    "issuer": "중국국가한반",
+                    "date": "2017-04-01",
+                    "grade_score": "4급"
+                },
+                {
+                    "name": "OPIc 영어 (Oral Proficiency Interview)",
+                    "issuer": "크레듀 (Credu)",
+                    "date": "2015-03-01",
+                    "grade_score": "IM3"
+                },
+                {
+                    "name": "OPIc 영어",
+                    "issuer": "크레듀 (Credu)",
+                    "date": "2012-09-01",
+                    "grade_score": "IH"
+                },
+                {
+                    "name": "컴퓨터활용능력",
+                    "issuer": "대한상공회의소",
+                    "date": "2008-12-12",
+                    "grade_score": "1급"
+                },
+                {
+                    "name": "한자능력자격증",
+                    "issuer": "한국어문회",
+                    "date": "2008-04-01",
+                    "grade_score": "2급"
+                },
+                {
+                    "name": "운전면허증",
+                    "issuer": "경찰청",
+                    "date": "2006-02-01",
+                    "grade_score": "1종 보통"
+                }
+            ]
+        };
+
+        // Timeline 변수
+        let timeline;
+        let items;
+        let groups;
+        let allItems = [];
+
+        // 데이터를 Vis.js 형식으로 변환
+        function convertDataToTimelineItems() {
+            const timelineItems = [];
+            
+            // 교육 데이터 변환
+            portfolioData.education.forEach(edu => {
+                timelineItems.push({
+                    id: `education_${timelineItems.length}`,
+                    content: `${edu.institution}<br><small>${edu.degree} - ${edu.major}</small>`,
+                    start: new Date(edu.startDate),
+                    end: edu.endDate ? new Date(edu.endDate) : null,
+                    group: 'education',
+                    className: 'education',
+                    type: edu.endDate ? 'range' : 'point',
+                    data: {
+                        category: 'education',
+                        title: `${edu.degree} - ${edu.institution}`,
+                        subtitle: edu.period,
+                        details: {
+                            '전공': edu.major,
+                            'GPA': edu.GPA || 'N/A',
+                            '상태': edu.status || '졸업'
+                        }
+                    }
+                });
+            });
+
+            // 경력 데이터 변환
+            portfolioData.experience.forEach(exp => {
+                timelineItems.push({
+                    id: `career_${timelineItems.length}`,
+                    content: `${exp.company}<br><small>${exp.title}</small>`,
+                    start: new Date(exp.startDate),
+                    end: exp.endDate ? new Date(exp.endDate) : new Date(),
+                    group: 'career',
+                    className: 'career',
+                    type: 'range',
+                    data: {
+                        category: 'career',
+                        title: `${exp.title} - ${exp.company}`,
+                        subtitle: exp.period,
+                        details: {
+                            '설명': exp.description
+                        }
+                    }
+                });
+            });
+
+            // 프로젝트 데이터 변환
+            portfolioData.projects.forEach(project => {
+                timelineItems.push({
+                    id: `project_${timelineItems.length}`,
+                    content: `${project.name}<br><small>${project.category}</small>`,
+                    start: new Date(project.startDate),
+                    end: new Date(project.endDate),
+                    group: 'project',
+                    className: 'project',
+                    type: 'range',
+                    data: {
+                        category: 'project',
+                        title: project.name,
+                        subtitle: `${project.startDate} ~ ${project.endDate}`,
+                        details: {
+                            '설명': project.description,
+                            '상태': project.status,
+                            '카테고리': project.category
+                        }
+                    }
+                });
+            });
+
+            // 출간물 데이터 변환
+            portfolioData.publications.forEach(pub => {
+                timelineItems.push({
+                    id: `publication_${timelineItems.length}`,
+                    content: `${pub.title.substring(0, 30)}...<br><small>${pub.publication}</small>`,
+                    start: new Date(pub.date),
+                    group: 'publication',
+                    className: 'publication',
+                    type: 'point',
+                    data: {
+                        category: 'publication',
+                        title: pub.title,
+                        subtitle: pub.date,
+                        details: {
+                            '발행처': pub.publication,
+                            '저자': pub.author
+                        }
+                    }
+                });
+            });
+
+            // 자격증 데이터 변환
+            portfolioData.certifications.forEach(cert => {
+                timelineItems.push({
+                    id: `certification_${timelineItems.length}`,
+                    content: `${cert.name}<br><small>${cert.grade_score}</small>`,
+                    start: new Date(cert.date),
+                    group: 'certification',
+                    className: 'certification',
+                    type: 'point',
+                    data: {
+                        category: 'certification',
+                        title: cert.name,
+                        subtitle: cert.date,
+                        details: {
+                            '발급기관': cert.issuer,
+                            '등급/점수': cert.grade_score
+                        }
+                    }
+                });
+            });
+
+            return timelineItems;
+        }
+
+        // 그룹 정의
+        function createGroups() {
+            return new vis.DataSet([
+                {
+                    id: 'education',
+                    content: '<i class="bi bi-mortarboard"></i> 교육',
+                    order: 1,
+                    style: 'color: var(--education-color);'
+                },
+                {
+                    id: 'career',
+                    content: '<i class="bi bi-building"></i> 경력',
+                    order: 2,
+                    style: 'color: var(--career-color);'
+                },
+                {
+                    id: 'project',
+                    content: '<i class="bi bi-code-slash"></i> 프로젝트',
+                    order: 3,
+                    style: 'color: var(--project-color);'
+                },
+                {
+                    id: 'publication',
+                    content: '<i class="bi bi-journal-text"></i> 출간물',
+                    order: 4,
+                    style: 'color: var(--publication-color);'
+                },
+                {
+                    id: 'certification',
+                    content: '<i class="bi bi-award"></i> 자격증',
+                    order: 5,
+                    style: 'color: var(--certification-color);'
+                }
+            ]);
+        }
+
+        // Timeline 초기화
+        function initializeTimeline() {
+            const container = document.getElementById('timeline');
+            container.className = '';
+            container.innerHTML = '';
+
+            allItems = convertDataToTimelineItems();
+            items = new vis.DataSet(allItems);
+            groups = createGroups();
+
+            const options = {
+                orientation: 'top',
+                stack: true,
+                showCurrentTime: true,
+                start: new Date(2002, 0, 1),
+                end: new Date(2030, 11, 31),
+                min: new Date(2000, 0, 1),
+                max: new Date(2035, 11, 31),
+                zoomMin: 1000 * 60 * 60 * 24 * 30,
+                zoomMax: 1000 * 60 * 60 * 24 * 365 * 40,
+                selectable: true,
+                multiselect: false,
+                height: '100%',
+                locale: 'ko',
+                format: {
+                    minorLabels: {
+                        year: 'YYYY',
+                        month: 'MM'
+                    },
+                    majorLabels: {
+                        year: 'YYYY년',
+                        month: 'YYYY년 MM월'
+                    }
+                }
+            };
+
+            timeline = new vis.Timeline(container, items, groups, options);
+
+            // 이벤트 리스너
+            timeline.on('select', function (event) {
+                const selectedItems = event.items;
+                if (selectedItems.length > 0) {
+                    const item = items.get(selectedItems[0]);
+                    showModal(item);
+                }
+            });
+
+            updateStatistics();
+        }
+
+        // 필터 기능
+        function setupFilters() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    filterTimeline();
+                });
+            });
+        }
+
+        function filterTimeline() {
+            const activeCategories = Array.from(document.querySelectorAll('.filter-btn.active'))
+                .map(btn => btn.dataset.category);
+            
+            const filteredItems = allItems.filter(item => 
+                activeCategories.includes(item.data.category)
+            );
+            
+            items.clear();
+            items.add(filteredItems);
+            
+            updateStatistics(activeCategories);
+        }
+
+        // 통계 업데이트
+        function updateStatistics(categories = ['education', 'career', 'project', 'publication', 'certification']) {
+            const stats = {
+                education: portfolioData.education.length,
+                career: Math.floor((new Date() - new Date('2010-10-01')) / (1000 * 60 * 60 * 24 * 365)),
+                project: portfolioData.projects.length,
+                publication: portfolioData.publications.length,
+                certification: portfolioData.certifications.length
+            };
+
+            Object.keys(stats).forEach(category => {
+                const element = document.getElementById(`${category}-count`);
+                if (element) {
+                    const count = categories.includes(category) ? stats[category] : 0;
+                    animateNumber(element, count);
+                }
+            });
+        }
+
+        function animateNumber(element, target) {
+            const start = parseInt(element.textContent) || 0;
+            const duration = 1000;
+            const increment = (target - start) / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+
+        // 모달 기능
+        function showModal(item) {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modal-title');
+            const subtitle = document.getElementById('modal-subtitle');
+            const body = document.getElementById('modal-body');
+
+            title.textContent = item.data.title;
+            subtitle.textContent = item.data.subtitle;
+
+            let detailsHtml = '';
+            Object.keys(item.data.details).forEach(key => {
+                detailsHtml += `
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="color: var(--primary-color);">${key}:</strong>
+                        <div style="margin-top: 0.25rem;">${item.data.details[key]}</div>
+                    </div>
+                `;
+            });
+
+            body.innerHTML = detailsHtml;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭시 닫기
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTimeline();
+            setupFilters();
+        });
+    </script>
+</body>
+</html>
