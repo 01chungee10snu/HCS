@@ -128,26 +128,52 @@ class PortfolioApp {
     }
 
     populateExperienceSection() {
-        const timelineContainer = document.getElementById('experience-timeline');
-        const { experience } = this.data;
+        try {
+            console.log('Populating experience section...');
+            const timelineContainer = document.getElementById('experience-timeline');
+            const experience = this.data?.experience || [];
 
-        // Add career summary section
-        this.addCareerSummary();
+            if (!timelineContainer) {
+                console.error('Timeline container not found');
+                return;
+            }
 
-        // Add filter controls
-        this.addFilterControls();
+            // Add career summary section
+            this.addCareerSummary();
 
-        experience.forEach((exp, index) => {
-            const timelineItem = this.createTimelineItem(exp, index);
-            timelineContainer.appendChild(timelineItem);
-        });
+            // Add filter controls
+            this.addFilterControls();
+
+            if (experience.length > 0) {
+                experience.forEach((exp, index) => {
+                    const timelineItem = this.createTimelineItem(exp, index);
+                    timelineContainer.appendChild(timelineItem);
+                });
+                console.log(`Experience section populated with ${experience.length} items`);
+            } else {
+                console.log('No experience data found');
+                timelineContainer.innerHTML = '<p class="text-center text-muted">경력 정보를 불러오는 중입니다...</p>';
+            }
+        } catch (error) {
+            console.error('Experience section population failed:', error);
+        }
     }
 
     addCareerSummary() {
-        const experienceSection = document.getElementById('experience');
-        const { careerSummary } = this.data;
-        
-        if (!careerSummary) return;
+        try {
+            console.log('Adding career summary...');
+            const experienceSection = document.getElementById('experience');
+            const careerSummary = this.data?.careerSummary || [];
+            
+            if (!experienceSection) {
+                console.error('Experience section not found');
+                return;
+            }
+            
+            if (!careerSummary || careerSummary.length === 0) {
+                console.log('No career summary data found');
+                return;
+            }
 
         const summaryContainer = document.createElement('div');
         summaryContainer.className = 'career-summary';
@@ -163,8 +189,14 @@ class PortfolioApp {
             </div>
         `;
         
-        const timelineContainer = document.getElementById('experience-timeline');
-        timelineContainer.parentNode.insertBefore(summaryContainer, timelineContainer);
+            const timelineContainer = document.getElementById('experience-timeline');
+            if (timelineContainer && timelineContainer.parentNode) {
+                timelineContainer.parentNode.insertBefore(summaryContainer, timelineContainer);
+                console.log('Career summary added successfully');
+            }
+        } catch (error) {
+            console.error('Career summary addition failed:', error);
+        }
     }
 
     createSummaryCard(summary) {
@@ -194,8 +226,16 @@ class PortfolioApp {
     }
 
     addFilterControls() {
-        const experienceSection = document.getElementById('experience');
-        const filterContainer = document.createElement('div');
+        try {
+            console.log('Adding filter controls...');
+            const experienceSection = document.getElementById('experience');
+            
+            if (!experienceSection) {
+                console.error('Experience section not found for filter controls');
+                return;
+            }
+            
+            const filterContainer = document.createElement('div');
         filterContainer.className = 'filter-controls mb-4 text-center';
         filterContainer.innerHTML = `
             <div class="btn-group mb-3" role="group">
@@ -222,6 +262,11 @@ class PortfolioApp {
                 e.target.classList.add('active');
             }
         });
+            
+            console.log('Filter controls added successfully');
+        } catch (error) {
+            console.error('Filter controls addition failed:', error);
+        }
     }
 
     filterAchievements(category) {
@@ -325,13 +370,29 @@ class PortfolioApp {
     }
 
     populateEducationSection() {
-        const educationGrid = document.getElementById('education-grid');
-        const { education } = this.data;
+        try {
+            console.log('Populating education section...');
+            const educationGrid = document.getElementById('education-grid');
+            const education = this.data?.education || [];
 
-        education.forEach(edu => {
-            const educationCard = this.createEducationCard(edu);
-            educationGrid.appendChild(educationCard);
-        });
+            if (!educationGrid) {
+                console.error('Education grid not found');
+                return;
+            }
+
+            if (education.length > 0) {
+                education.forEach(edu => {
+                    const educationCard = this.createEducationCard(edu);
+                    educationGrid.appendChild(educationCard);
+                });
+                console.log(`Education section populated with ${education.length} items`);
+            } else {
+                console.log('No education data found');
+                educationGrid.innerHTML = '<div class="col-12"><p class="text-center text-muted">학력 정보를 불러오는 중입니다...</p></div>';
+            }
+        } catch (error) {
+            console.error('Education section population failed:', error);
+        }
     }
 
     createEducationCard(edu) {
@@ -358,13 +419,29 @@ class PortfolioApp {
     }
 
     populateSkillsSection() {
-        const skillsGrid = document.getElementById('skills-grid');
-        const { skills } = this.data;
+        try {
+            console.log('Populating skills section...');
+            const skillsGrid = document.getElementById('skills-grid');
+            const skills = this.data?.skills || [];
 
-        skills.forEach(skill => {
-            const skillCard = this.createSkillCard(skill);
-            skillsGrid.appendChild(skillCard);
-        });
+            if (!skillsGrid) {
+                console.error('Skills grid not found');
+                return;
+            }
+
+            if (skills.length > 0) {
+                skills.forEach(skill => {
+                    const skillCard = this.createSkillCard(skill);
+                    skillsGrid.appendChild(skillCard);
+                });
+                console.log(`Skills section populated with ${skills.length} items`);
+            } else {
+                console.log('No skills data found');
+                skillsGrid.innerHTML = '<div class="col-12"><p class="text-center text-muted">역량 정보를 불러오는 중입니다...</p></div>';
+            }
+        } catch (error) {
+            console.error('Skills section population failed:', error);
+        }
     }
 
     createSkillCard(skill) {
@@ -404,26 +481,54 @@ class PortfolioApp {
     }
 
     populateCertificationsSection() {
-        const certificationsGrid = document.getElementById('certifications-grid');
-        const { certifications } = this.data;
+        try {
+            console.log('Populating certifications section...');
+            const certificationsGrid = document.getElementById('certifications-grid');
+            const certifications = this.data?.certifications || [];
 
-        if (certifications && certifications.length > 0) {
-            certifications.forEach(cert => {
-                const certCard = this.createCertificationCard(cert);
-                certificationsGrid.appendChild(certCard);
-            });
+            if (!certificationsGrid) {
+                console.error('Certifications grid not found');
+                return;
+            }
+
+            if (certifications.length > 0) {
+                certifications.forEach(cert => {
+                    const certCard = this.createCertificationCard(cert);
+                    certificationsGrid.appendChild(certCard);
+                });
+                console.log(`Certifications section populated with ${certifications.length} items`);
+            } else {
+                console.log('No certifications data found');
+                certificationsGrid.innerHTML = '<div class="col-12"><p class="text-center text-muted">자격증 정보를 불러오는 중입니다...</p></div>';
+            }
+        } catch (error) {
+            console.error('Certifications section population failed:', error);
         }
     }
 
     populateProjectsSection() {
-        const projectsGrid = document.getElementById('projects-grid');
-        const { projects } = this.data;
+        try {
+            console.log('Populating projects section...');
+            const projectsGrid = document.getElementById('projects-grid');
+            const projects = this.data?.projects || [];
 
-        if (projects && projects.length > 0) {
-            projects.forEach(project => {
-                const projectCard = this.createProjectCard(project);
-                projectsGrid.appendChild(projectCard);
-            });
+            if (!projectsGrid) {
+                console.error('Projects grid not found');
+                return;
+            }
+
+            if (projects.length > 0) {
+                projects.forEach(project => {
+                    const projectCard = this.createProjectCard(project);
+                    projectsGrid.appendChild(projectCard);
+                });
+                console.log(`Projects section populated with ${projects.length} items`);
+            } else {
+                console.log('No projects data found');
+                projectsGrid.innerHTML = '<div class="col-12"><p class="text-center text-muted">프로젝트 정보를 불러오는 중입니다...</p></div>';
+            }
+        } catch (error) {
+            console.error('Projects section population failed:', error);
         }
     }
 
@@ -515,13 +620,29 @@ class PortfolioApp {
     }
 
     populatePublicationsSection() {
-        const publicationsGrid = document.getElementById('publications-grid');
-        const { publications } = this.data;
+        try {
+            console.log('Populating publications section...');
+            const publicationsGrid = document.getElementById('publications-grid');
+            const publications = this.data?.publications || [];
 
-        publications.forEach(pub => {
-            const pubCard = this.createPublicationCard(pub);
-            publicationsGrid.appendChild(pubCard);
-        });
+            if (!publicationsGrid) {
+                console.error('Publications grid not found');
+                return;
+            }
+
+            if (publications.length > 0) {
+                publications.forEach(pub => {
+                    const pubCard = this.createPublicationCard(pub);
+                    publicationsGrid.appendChild(pubCard);
+                });
+                console.log(`Publications section populated with ${publications.length} items`);
+            } else {
+                console.log('No publications data found');
+                publicationsGrid.innerHTML = '<div class="col-12"><p class="text-center text-muted">연구 출판 정보를 불러오는 중입니다...</p></div>';
+            }
+        } catch (error) {
+            console.error('Publications section population failed:', error);
+        }
     }
 
     createPublicationCard(pub) {
@@ -545,21 +666,40 @@ class PortfolioApp {
     }
 
     populateContactSection() {
-        const { basics, externalLinks } = this.data;
-        
-        document.getElementById('contact-email').textContent = basics.email;
-        document.getElementById('contact-location').textContent = basics.location;
-        
-        const externalLinksContainer = document.getElementById('external-links');
-        externalLinks.forEach(link => {
-            const linkElement = document.createElement('a');
-            linkElement.href = link.url;
-            linkElement.target = '_blank';
-            linkElement.rel = 'noopener noreferrer';
-            linkElement.className = 'external-link';
-            linkElement.innerHTML = `<i class="bi bi-link-45deg"></i> ${link.name}`;
-            externalLinksContainer.appendChild(linkElement);
-        });
+        try {
+            console.log('Populating contact section...');
+            const basics = this.data?.basics || {};
+            const externalLinks = this.data?.externalLinks || [];
+            
+            const emailEl = document.getElementById('contact-email');
+            const locationEl = document.getElementById('contact-location');
+            const externalLinksContainer = document.getElementById('external-links');
+            
+            if (emailEl) {
+                emailEl.textContent = basics.email || 'brienz311@gmail.com';
+            }
+            
+            if (locationEl) {
+                locationEl.textContent = basics.location || '대한민국 경기도 안산시';
+            }
+            
+            if (externalLinksContainer && externalLinks.length > 0) {
+                externalLinksContainer.innerHTML = '';
+                externalLinks.forEach(link => {
+                    const linkElement = document.createElement('a');
+                    linkElement.href = link.url;
+                    linkElement.target = '_blank';
+                    linkElement.rel = 'noopener noreferrer';
+                    linkElement.className = 'external-link';
+                    linkElement.innerHTML = `<i class="bi bi-link-45deg"></i> ${link.name}`;
+                    externalLinksContainer.appendChild(linkElement);
+                });
+            }
+            
+            console.log('Contact section populated successfully');
+        } catch (error) {
+            console.error('Contact section population failed:', error);
+        }
     }
 
     initializeAnimations() {
