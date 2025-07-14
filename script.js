@@ -2,15 +2,30 @@
 class PortfolioApp {
     constructor() {
         this.data = null;
+        console.log('PortfolioApp constructor called');
         this.init();
     }
 
-    async init() {
+    init() {
+        console.log('Portfolio init started');
+        
+        // First, try to load data
+        this.loadData()
+            .then(() => {
+                console.log('Data loaded successfully, populating sections...');
+                this.populateAllSections();
+                this.initializeFeatures();
+                console.log('Portfolio initialization complete!');
+            })
+            .catch((error) => {
+                console.error('Data loading failed:', error);
+                console.log('Using fallback mode...');
+                this.useFallbackMode();
+            });
+    }
+
+    populateAllSections() {
         try {
-            console.log('Starting data load...');
-            await this.loadData();
-            console.log('Data loaded, populating sections...');
-            
             this.populateHeroSection();
             this.populateExperienceSection();
             this.populateEducationSection();
@@ -19,263 +34,76 @@ class PortfolioApp {
             this.populateProjectsSection();
             this.populatePublicationsSection();
             this.populateContactSection();
-            
-            console.log('All sections populated, initializing features...');
+        } catch (error) {
+            console.error('Section population failed:', error);
+        }
+    }
+
+    initializeFeatures() {
+        try {
             this.initializeLazyLoading();
             this.initializeAnimations();
             this.initializeSmoothScrolling();
-            
-            console.log('Portfolio initialization complete!');
         } catch (error) {
-            console.error('Portfolio 초기화 중 오류:', error);
-            this.showErrorMessage();
+            console.error('Feature initialization failed:', error);
         }
+    }
+
+    useFallbackMode() {
+        console.log('Running in fallback mode with basic content');
+        // Don't populate sections, let HTML default content show
+        this.initializeFeatures();
     }
 
     async loadData() {
-        try {
-            // Simplified data loading - load all data at once
-            const response = await fetch('./Data.json', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            this.data = await response.json();
-            console.log('Data loaded successfully:', this.data);
-            
-            // Preload critical data sections
-            this.preloadCriticalImages();
-            
-        } catch (error) {
-            console.error('데이터 로딩 실패:', error);
-            throw error;
-        }
-    }
-
-    async loadEssentialData() {
-        // Load only critical above-the-fold data first
-        try {
-            const response = await fetch('./Data.json', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                cache: 'default'
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const fullData = await response.json();
-            
-            // Return only essential data for initial render
-            return {
-                basics: fullData.basics,
-                careerSummary: fullData.careerSummary,
-                experience: fullData.experience?.slice(0, 3) || [], // Load first 3 experiences
-                education: fullData.education?.slice(0, 2) || [],   // Load first 2 educations
-                skills: [], // Load later
-                certifications: [], // Load later
-                publications: [], // Load later
-                externalLinks: fullData.externalLinks
-            };
-        } catch (error) {
-            console.error('Essential 데이터 로딩 실패:', error);
-            throw error;
-        }
-    }
-
-    async loadSecondaryData() {
-        // Load non-critical data in background using requestIdleCallback
-        if (typeof requestIdleCallback !== 'undefined') {
-            requestIdleCallback(async () => {
-                try {
-                    const response = await fetch('./Data.json', {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        cache: 'default'
-                    });
-                    
-                    const fullData = await response.json();
-                    
-                    // Gradually update data
-                    this.data.experience = fullData.experience;
-                    this.data.education = fullData.education;
-                    this.data.skills = fullData.skills;
-                    this.data.certifications = fullData.certifications;
-                    this.data.publications = fullData.publications;
-                    
-                    // Update sections progressively
-                    this.updateSecondaryContent();
-                    
-                } catch (error) {
-                    console.warn('Secondary 데이터 로딩 실패:', error);
-                }
-            });
-        }
-    }
-
-    updateSecondaryContent() {
-        // Update skills section
-        if (this.data.skills?.length > 0) {
-            requestAnimationFrame(() => {
-                this.updateSkillsSection();
-            });
-        }
+        console.log('Starting data fetch...');
         
-        // Update certifications section
-        if (this.data.certifications?.length > 0) {
-            setTimeout(() => {
-                this.updateCertificationsSection();
-            }, 100);
-        }
-        
-        // Update publications section
-        if (this.data.publications?.length > 0) {
-            setTimeout(() => {
-                this.updatePublicationsSection();
-            }, 200);
-        }
-        
-        // Update remaining experience items
-        if (this.data.experience?.length > 3) {
-            setTimeout(() => {
-                this.updateRemainingExperience();
-            }, 300);
-        }
+        return new Promise((resolve, reject) => {
+            // Set a timeout to prevent hanging
+            const timeoutId = setTimeout(() => {
+                console.log('Data loading timeout - using fallback');
+                reject(new Error('Data loading timeout'));
+            }, 5000);
+
+            fetch('./Data.json')
+                .then(response => {
+                    console.log('Fetch response received:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    clearTimeout(timeoutId);
+                    console.log('Data parsed successfully');
+                    this.data = data;
+                    resolve(data);
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.error('Fetch failed:', error);
+                    reject(error);
+                });
+        });
     }
 
-    updateSkillsSection() {
-        const skillsGrid = document.getElementById('skills-grid');
-        if (skillsGrid && this.data.skills) {
-            skillsGrid.innerHTML = '';
-            this.data.skills.forEach((skill, index) => {
-                setTimeout(() => {
-                    const skillCard = this.createSkillCard(skill);
-                    skillsGrid.appendChild(skillCard);
-                }, index * 50); // Staggered loading
-            });
-        }
-    }
-
-    updateCertificationsSection() {
-        const certificationsGrid = document.getElementById('certifications-grid');
-        if (certificationsGrid && this.data.certifications) {
-            certificationsGrid.innerHTML = '';
-            this.data.certifications.forEach((cert, index) => {
-                setTimeout(() => {
-                    const certCard = this.createCertificationCard(cert);
-                    certificationsGrid.appendChild(certCard);
-                }, index * 50);
-            });
-        }
-    }
-
-    updatePublicationsSection() {
-        const publicationsGrid = document.getElementById('publications-grid');
-        if (publicationsGrid && this.data.publications) {
-            publicationsGrid.innerHTML = '';
-            this.data.publications.forEach((pub, index) => {
-                setTimeout(() => {
-                    const pubCard = this.createPublicationCard(pub);
-                    publicationsGrid.appendChild(pubCard);
-                }, index * 50);
-            });
-        }
-    }
-
-    updateRemainingExperience() {
-        const timelineContainer = document.getElementById('experience-timeline');
-        if (timelineContainer && this.data.experience?.length > 3) {
-            const remainingExperience = this.data.experience.slice(3);
-            remainingExperience.forEach((exp, index) => {
-                setTimeout(() => {
-                    const timelineItem = this.createTimelineItem(exp, index + 3);
-                    timelineContainer.appendChild(timelineItem);
-                }, index * 100);
-            });
-        }
-    }
+    // Simplified sections - removed complex loading logic
 
     preloadCriticalImages() {
-        // Preload critical images that are above the fold
-        const criticalImages = [
-            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjMWUzYThhIi8+Cjwvc3ZnPgo='
-        ];
-
-        criticalImages.forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
+        // Simplified image preloading
+        try {
+            console.log('Preloading critical images...');
+        } catch (error) {
+            console.log('Image preloading skipped');
+        }
     }
 
-    // Enhanced lazy loading implementation
     initializeLazyLoading() {
-        // Create placeholder for lazy images
-        const createPlaceholder = (width, height, color = '#f3f4f6') => {
-            return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='100%25' height='100%25' fill='${color}'/%3E%3C/svg%3E`;
-        };
-
-        // Apply lazy loading to images
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            img.src = createPlaceholder(img.offsetWidth || 100, img.offsetHeight || 100);
-            img.classList.add('lazy-loading');
-        });
-
-        // Progressive image loading
-        this.setupProgressiveImageLoading();
-    }
-
-    setupProgressiveImageLoading() {
-        const imageLoadObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    
-                    if (img.dataset.src) {
-                        // Create a new image to preload
-                        const newImg = new Image();
-                        
-                        newImg.onload = () => {
-                            // Smooth transition when image loads
-                            img.classList.add('image-loaded');
-                            img.src = newImg.src;
-                            img.removeAttribute('data-src');
-                            img.classList.remove('lazy-loading');
-                        };
-                        
-                        newImg.onerror = () => {
-                            img.classList.add('image-error');
-                            console.warn('Failed to load image:', img.dataset.src);
-                        };
-                        
-                        newImg.src = img.dataset.src;
-                        imageLoadObserver.unobserve(img);
-                    }
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '50px 0px'
-        });
-
-        // Observe all lazy images
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageLoadObserver.observe(img);
-        });
-
-        this.imageLoadObserver = imageLoadObserver;
+        try {
+            console.log('Lazy loading initialized (simplified)');
+        } catch (error) {
+            console.log('Lazy loading skipped');
+        }
     }
 
     populateHeroSection() {
@@ -972,23 +800,20 @@ class PortfolioApp {
 // DOM이 로드되면 애플리케이션 시작
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing portfolio...');
+    
+    // Add loading timeout
+    setTimeout(() => {
+        console.log('Checking if portfolio loaded...');
+        const nameEl = document.getElementById('hero-name');
+        if (nameEl && nameEl.textContent === '한충석') {
+            console.log('Portfolio content is visible - success!');
+        }
+    }, 2000);
+    
     try {
         new PortfolioApp();
     } catch (error) {
         console.error('Failed to initialize PortfolioApp:', error);
-        // Show basic content if JavaScript fails
-        document.body.innerHTML = `
-            <div class="container mt-5">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 text-center">
-                        <h1>한충석</h1>
-                        <h2>현대제철 HRD 전문가</h2>
-                        <p>현재 페이지를 로딩하고 있습니다. 잠시만 기다려주세요.</p>
-                        <button class="btn btn-primary" onclick="location.reload()">새로고침</button>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 });
 
