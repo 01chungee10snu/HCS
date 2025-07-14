@@ -13,7 +13,8 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "WebFetch(domain:github.com)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
