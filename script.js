@@ -114,11 +114,16 @@ class PortfolioApp {
                 })
                 .then(data => {
                     clearTimeout(timeoutId);
-                    console.log('Data parsed successfully');
-                    console.log('Experience data length:', data?.experience?.length);
+                    console.log('✅ Data parsed successfully');
+                    console.log('📊 Experience data length:', data?.experience?.length);
                     if (data?.experience?.length > 0) {
-                        console.log('First experience item achievements:', data.experience[0]?.achievements?.length);
-                        console.log('Sample achievement:', data.experience[0]?.achievements?.[0]);
+                        console.log('🎯 First experience item achievements:', data.experience[0]?.achievements?.length);
+                        console.log('📄 Sample achievement:', data.experience[0]?.achievements?.[0]?.name);
+                        
+                        // Log all experience companies and achievement counts
+                        data.experience.forEach((exp, index) => {
+                            console.log(`📍 Company ${index + 1}: ${exp.company} (${exp.achievements?.length || 0} achievements)`);
+                        });
                     }
                     this.data = data;
                     resolve(data);
@@ -393,7 +398,7 @@ class PortfolioApp {
                     const collaborationClass = achievement?.collaborationScope ? `collaboration-${achievement.collaborationScope}` : '';
                     
                     return `
-                        <div class="achievement-card animated ${categoryClass} ${collaborationClass}">
+                        <div class="achievement-card visible-content ${categoryClass} ${collaborationClass}" style="opacity: 1; transform: translate3d(0, 0, 0);">
                             <div class="impact-indicator ${impactClass}"></div>
                             <div class="innovation-badge ${innovationClass}">${this.getInnovationIcon(achievement?.innovationType)}</div>
                             <h6 class="fw-bold text-primary mb-2">${achievement?.name || '제목 없음'}</h6>
@@ -403,11 +408,15 @@ class PortfolioApp {
                     `;
                 } catch (achError) {
                     console.error(`Error processing achievement ${achIndex}:`, achError);
-                    return '<div class="achievement-card animated"><p class="text-muted">성과 정보 로딩 중...</p></div>';
+                    return '<div class="achievement-card visible-content" style="opacity: 1; transform: translate3d(0, 0, 0);"><p class="text-muted">성과 정보 로딩 중...</p></div>';
                 }
             }).join('');
             
-            console.log(`${exp.company}: Generated ${achievements.length} achievement cards`);
+            console.log(`🏢 ${exp.company}: Generated ${achievements.length} achievement cards`);
+            console.log(`📝 Achievement HTML length: ${achievementsHtml.length} characters`);
+            if (achievementsHtml.length === 0) {
+                console.error(`❌ ${exp.company}: No HTML generated for achievements!`);
+            }
 
             const timelineHTML = `
                 <div class="timeline-icon category-${dominantCategory}">
@@ -421,23 +430,55 @@ class PortfolioApp {
                     <p class="mb-3">${exp?.description || ''}</p>
                     <div class="achievements">
                         <h6 class="fw-bold mb-3">주요 성과</h6>
+                        <div style="background: #e3f2fd; border: 2px solid #2196f3; padding: 8px; margin: 8px 0; border-radius: 4px;">
+                            🔍 DEBUG: Achievement 섹션 시작 - ${achievements.length}개 성과 표시 예정
+                        </div>
                         ${achievementsHtml || '<p class="text-muted">성과 정보가 없습니다.</p>'}
+                        <div style="background: #e8f5e8; border: 2px solid #4caf50; padding: 8px; margin: 8px 0; border-radius: 4px;">
+                            ✅ DEBUG: Achievement 섹션 끝
+                        </div>
                     </div>
                 </div>
             `;
             
             item.innerHTML = timelineHTML;
             
-            // Ensure achievement cards are visible immediately
-            setTimeout(() => {
+            // Ensure achievement cards are visible immediately with multiple safety checks
+            const makeAchievementsVisible = () => {
                 const achievementCards = item.querySelectorAll('.achievement-card');
-                achievementCards.forEach(card => {
-                    if (!card.classList.contains('animated')) {
-                        card.classList.add('animated');
-                    }
+                achievementCards.forEach((card, cardIndex) => {
+                    // Force visibility with multiple approaches
+                    card.style.opacity = '1';
+                    card.style.transform = 'translate3d(0, 0, 0)';
+                    card.style.visibility = 'visible';
+                    card.style.display = 'block';
+                    card.classList.add('visible-content');
+                    card.classList.remove('prepare-animation');
+                    
+                    // Add a visible border for debugging
+                    card.style.border = '1px solid #e5e7eb';
+                    card.style.marginBottom = '1rem';
+                    card.style.padding = '1rem';
+                    card.style.backgroundColor = 'white';
                 });
-                console.log(`${exp.company}: ${achievementCards.length} achievement cards made visible`);
-            }, 50);
+                console.log(`${exp.company}: FORCED ${achievementCards.length} achievement cards to be visible`);
+                
+                // Double-check visibility after a brief delay
+                setTimeout(() => {
+                    const stillHidden = item.querySelectorAll('.achievement-card[style*="opacity: 0"], .achievement-card:not([style*="opacity: 1"])');
+                    if (stillHidden.length > 0) {
+                        console.error(`${exp.company}: ${stillHidden.length} achievement cards are still hidden!`);
+                        stillHidden.forEach(card => {
+                            card.style.opacity = '1 !important';
+                            card.style.transform = 'none !important';
+                        });
+                    }
+                }, 100);
+            };
+            
+            // Execute immediately and also after a delay
+            makeAchievementsVisible();
+            setTimeout(makeAchievementsVisible, 10);
             
             return item;
         } catch (error) {
@@ -862,10 +903,20 @@ class PortfolioApp {
                         // Animate timeline items with enhanced performance
                         if (entry.target.classList.contains('timeline-item')) {
                             entry.target.classList.add('animate');
+                            
+                            // Ensure achievement cards within timeline items remain visible
+                            const achievementCards = entry.target.querySelectorAll('.achievement-card');
+                            achievementCards.forEach(card => {
+                                // Preserve visibility of achievement cards
+                                card.style.opacity = '1';
+                                card.style.transform = 'translate3d(0, 0, 0)';
+                                card.classList.add('visible-content');
+                            });
                         }
                         
-                        // Unobserve animated elements to improve performance
-                        if (!entry.target.classList.contains('timeline-item')) {
+                        // DON'T unobserve achievement cards - they should stay visible
+                        if (!entry.target.classList.contains('timeline-item') && 
+                            !entry.target.classList.contains('achievement-card')) {
                             animationObserver.unobserve(entry.target);
                         }
                     });

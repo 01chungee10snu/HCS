@@ -615,16 +615,29 @@ footer {
 
 /* Staggered animations for achievement cards */
 .achievement-card {
-  transform: translate3d(0, 20px, 0);
-  opacity: 0;
+  /* Default visible state - content should always be visible */
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform, opacity;
 }
 
+/* Animation states for scroll effects */
+.achievement-card.prepare-animation {
+  transform: translate3d(0, 20px, 0);
+  opacity: 0;
+}
+
 .achievement-card.animated {
   transform: translate3d(0, 0, 0);
   opacity: 1;
+}
+
+/* Fallback rule to ensure content is always visible */
+.achievement-card:not(.prepare-animation) {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) !important;
 }
 
 /* Progressive loading animation */
